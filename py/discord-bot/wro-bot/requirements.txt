@@ -1,0 +1,9 @@
+git+https://github.com/zawodev/msgcount.py@rewrite
+discord.py
+pytz
+python-dotenv
+requests
+validators
+asyncio
+uuid
+datetime
