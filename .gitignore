@@ -34,8 +34,11 @@
 # duze pliki cpp (tep sem3 miniproj)
 *.ipch
 
+
+
+
 #inne 
-py/my_spotipy/.env
-py/zawobot_dc/.env
-
-
+py/spotipy-test/.env
+py/discord-bot/jazzbot-v1/*
+py/discord-bot/jazzbot-v2/.env
+py/discord-bot/jazzbot-v3/.env
