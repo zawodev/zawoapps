@@ -5,6 +5,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+import count_react_emojis as cre
+
 load_dotenv()
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 
@@ -22,18 +24,21 @@ async def on_ready():
 async def on_message(message):
     if message.author == bot.user:
         return
-    await bot.process_commands(message)
-    await message.channel.send("Hello, world!")
+    # await bot.process_commands(message) # this is not needed
+    # await message.channel.send("Hello, world!")
 
 
-@bot.tree.command(name="hello")
-async def hello(ctx: discord.Interaction):
-    await ctx.response.send_message("Hello, world!")
+@bot.tree.command(name="count_react_emojis")
+async def count_react_emojis(ctx: discord.Interaction):
+    await ctx.response.send_message("done")
+    embed = await cre.emoji_count_to_embed(ctx.guild)
+    await ctx.channel.send(embed=embed)
 
 
-@bot.tree.command(name="hello2")
-@app_commands.describe(thing_to_say="sdfsdaf")
-async def hello2(ctx: discord.Interaction, thing_to_say: str):
-    await ctx.response.send_message(f"you said: {thing_to_say}")
+@bot.tree.command(name="count_react_emojis_args")
+@app_commands.describe(guild_id="put description here")
+async def count_react_emojis_args(ctx: discord.Interaction, guild_id: int):
+    await ctx.response.send_message("", embed=cre.emoji_count_to_embed(bot.get_guild(guild_id)))
+
 
 bot.run(os.getenv("DISCORD_TOKEN"))
