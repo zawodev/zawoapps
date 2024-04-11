@@ -37,8 +37,10 @@ async def count_react_emojis(ctx: discord.Interaction):
 
 @bot.tree.command(name="count_react_emojis_args")
 @app_commands.describe(guild_id="put description here")
-async def count_react_emojis_args(ctx: discord.Interaction, guild_id: int):
-    await ctx.response.send_message("", embed=cre.emoji_count_to_embed(bot.get_guild(guild_id)))
+async def count_react_emojis_args(ctx: discord.Interaction, guild_id: str):
+    await ctx.response.send_message("done")
+    embed = await cre.emoji_count_to_embed(bot.get_guild(int(guild_id)))
+    await ctx.channel.send(embed=embed)
 
 
 bot.run(os.getenv("DISCORD_TOKEN"))
