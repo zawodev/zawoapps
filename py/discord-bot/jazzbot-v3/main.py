@@ -44,3 +44,17 @@ async def count_react_emojis_args(ctx: discord.Interaction, guild_id: str):
 
 
 bot.run(os.getenv("DISCORD_TOKEN"))
+
+# ideas:
+
+# - message edited and deleted logger
+
+# - message response with character.ai api, group messages into
+# conversations (which are group of messages that are 3 min apart max) and respond to them (commands
+# /start-responder-webhook, /stop-responder-webhook)
+
+# - message response with gpt-3 api, group messages into
+# conversations and respond to them (commands /start-gpt3-webhook, /stop-gpt3-webhook)
+
+# - message auto react bot (gives thumbs up to most grajo's messages
+# if there is long time that passed from the last one for example)
