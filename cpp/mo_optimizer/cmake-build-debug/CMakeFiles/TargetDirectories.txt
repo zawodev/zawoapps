@@ -1,0 +1,3 @@
+C:/Users/aliks/Documents/GitHub/zawoapps/cpp/mo_optimizer/cmake-build-debug/CMakeFiles/mo_optimizer.dir
+C:/Users/aliks/Documents/GitHub/zawoapps/cpp/mo_optimizer/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/aliks/Documents/GitHub/zawoapps/cpp/mo_optimizer/cmake-build-debug/CMakeFiles/rebuild_cache.dir

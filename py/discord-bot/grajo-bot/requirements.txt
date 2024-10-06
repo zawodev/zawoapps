@@ -7,3 +7,4 @@ asyncio
 uuid
 datetime
 discord-py-slash-command
+pynacl

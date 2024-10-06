@@ -1,0 +1,11 @@
+bitsandbytes
+git+https://github.com/huggingface/transformers.git
+git+https://github.com/huggingface/peft.git
+git+https://github.com/huggingface/accelerate.git
+trl~=0.9.6
+xformers
+wandb~=0.17.5
+datasets~=2.20.0
+einops
+sentencepiece
+torch~=2.4.0

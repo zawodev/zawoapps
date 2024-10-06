@@ -1,0 +1,45 @@
+{
+    "os": "Windows-11-10.0.22621-SP0",
+    "python": "3.12.6",
+    "heartbeatAt": "2024-10-05T12:14:39.726416",
+    "startedAt": "2024-10-05T12:14:38.687967",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "C:\\Users\\aliks\\Documents\\GitHub\\zawoapps\\py\\mistral-ai-test\\training.py",
+    "codePathLocal": "training.py",
+    "codePath": "py\\mistral-ai-test\\training.py",
+    "git": {
+        "remote": "https://github.com/zawodev/zawoapps.git",
+        "commit": "9df4c5df00c4e8cd550bd2fb8e931f50d1696e8c"
+    },
+    "email": "alikstepaniuk@gmail.com",
+    "root": "C:/Users/aliks/Documents/GitHub/zawoapps",
+    "host": "zawo-PC",
+    "username": "aliks",
+    "executable": "C:\\Users\\aliks\\Documents\\GitHub\\zawoapps\\py\\mistral-ai-test\\.venv\\Scripts\\python.exe",
+    "cpu_count": 8,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 3801.0,
+        "min": 0.0,
+        "max": 3801.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3801.0,
+            "min": 0.0,
+            "max": 3801.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 953.0559310913086,
+            "used": 748.2555618286133
+        }
+    },
+    "memory": {
+        "total": 15.947410583496094
+    }
+}
