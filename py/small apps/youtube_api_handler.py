@@ -8,7 +8,7 @@ def get_latest_video(channel_input: str) -> dict:
     if match:
         channel_id = match.group(1)
         # Fetch channel ID using YouTube API if URL format is provided
-        api_key = 'AIzaSyAA6iUw2M_EMXYDOHhduW7BiToIiXHH7jw'
+        api_key = 'API KEY HERE' # from: https://console.cloud.google.com/apis/credentials
         base_url = "https://www.googleapis.com/youtube/v3/channels"
         params = {
             "part": "id",
