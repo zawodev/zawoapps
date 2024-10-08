@@ -52,9 +52,57 @@ async def update():
 
 # ======================== DISCORD BOT EVENTS ========================
 
+"""
 @bot.event
-async def setup_hooks():
-    await bot.loop.create_task(timer())
+async def setup_hook():
+    bot.loop.create_task(timer())
+"""
+
+voice_client = None
+@bot.event
+async def on_voice_state_update(member, before, after):
+    global voice_client
+
+    # na razie wyłączamy funkcje dołączania na voice call
+    return
+
+    if member.bot: # jeśli bot dołączył na kanał głosowy, to nic nie rób
+        return
+
+    # sprawdzamy czy użytkownik dołączył na kanał głosowy
+    if before.channel is None and after.channel is not None:
+        # member dołączył na kanał głosowy
+        print(f'{member} dołączył na kanał {after.channel}')
+
+        # sprawdzamy, czy bot jest już na kanale, żeby nie połączyć go ponownie
+        if voice_client is None or not voice_client.is_connected():
+            # odczekaj 1-3 sekundy
+            await asyncio.sleep(random.uniform(1, 3))
+            # bot nie jest na kanale, łączymy go
+            voice_client = await after.channel.connect()
+
+    # sprawdzamy czy użytkownik opuścił kanał głosowy
+    if before.channel is not None and after.channel is None:
+        # member opuścił kanał głosowy
+        print(f'{member} opuścił kanał {before.channel}')
+
+        # sprawdzamy, czy kanał głosowy jest teraz pusty, ignorując bota
+        non_bot_members = [m for m in before.channel.members if not m.bot]
+
+        # sprawdzamy, czy kanał głosowy jest teraz pusty
+        if len(non_bot_members) == 0 and voice_client is not None:
+            # kanał głosowy stał się pusty, rozłączamy bota
+            print(f'kanał {before.channel.name} jest teraz pusty')
+
+            # odczekaj 1-3 sekundy
+            await asyncio.sleep(random.uniform(1, 3))
+
+            await voice_client.disconnect()
+            voice_client = None
+
+            # bot opuścił kanał głosowy
+            print("bot opuścił kanał głosowy")
+
 
 @bot.event
 async def on_ready():
@@ -77,8 +125,10 @@ async def on_message(message):
         return
 
     msg = message.content.lower()
+    # get user from id 380820820466991116 (grajo)
+    real_grajo = await bot.fetch_user(380820820466991116)
 
-    if 'graj' in msg or 'marek' in msg or 'bot' in msg or bot.user.mentioned_in(message):
+    if 'graj' in msg or 'marek' in msg or 'bot' in msg or bot.user.mentioned_in(message) or real_grajo.mentioned_in(message):
         action = random.randint(1, 7)
         print(action)
 
@@ -86,7 +136,7 @@ async def on_message(message):
             await asyncio.sleep(random.uniform(1, 5))
 
         random_words = random.sample(word_list, random.randint(1, 5))
-        last_messages = [msg async for msg in message.channel.history(limit=300)]
+        last_messages = [msg async for msg in message.channel.history(limit=100)]
         random_message = random.choice(last_messages)
 
         if action == 1: # respond to random message with "." as a text using discord respond feature
@@ -106,8 +156,20 @@ async def on_message(message):
 
         # elif action >= 6: # do nothing
 
+    # if message owner is grajo then add his message to the list
+    if message.author.id == 1291727291881226280:
+        word_list.append(message.content)
+        save_words(word_list)
+        await message.channel.send(f'słowo "{message.content}" zostało dodane do listy moich słów!')
+
 
     await bot.process_commands(message)
+
+
+
+# ======================== DISCORD BOT COMMANDS ========================
+
+
 
 @bot.tree.command(name="add_word", description="dodaj swoje ulubione słowo graja")
 async def add_word(interaction: discord.Interaction, word: str):
@@ -128,7 +190,9 @@ async def say_something(interaction: discord.Interaction, message: str, channel_
 
 
 @bot.tree.command(name="play_sound", description="dołącza do kanału głosowego i puszcza dźwięk")
-async def play_sound(interaction: discord.Interaction, channel_id: int = 1028303332193873981):
+async def play_sound(interaction: discord.Interaction, channel_id: int = 1028303332193873981, sound_id: int = -1):
+    global voice_client
+
     if interaction.user.id not in admin_ids:
         await interaction.response.send_message(f'nie masz uprawnień do użycia tej komendy')
         return
@@ -143,8 +207,10 @@ async def play_sound(interaction: discord.Interaction, channel_id: int = 1028303
         print("nie znaleziono kanału głosowego o podanym ID.")
         return
 
-    # Dołączanie do kanału głosowego
-    voice_client = await voice_channel.connect()
+    # Dołączanie do kanału głosowego jeśli jeszcze tam nie dołączyliśmy
+    if voice_client is None or not voice_client.is_connected():
+        voice_client = await voice_channel.connect()
+        print("bot dołączył do kanału głosowego")
 
     # Sprawdzamy, czy bot jest już podłączony i czy nie gra dźwięku
     if voice_client.is_playing():
@@ -153,12 +219,16 @@ async def play_sound(interaction: discord.Interaction, channel_id: int = 1028303
         return
 
     # Odtwarzanie dźwięku MP3
-    audio_source = discord.FFmpegPCMAudio('sound.mp3')
+    if sound_id == -1:
+        sound_id = random.randint(1, 3)
+    sound = 'grajo' + str(sound_id) + '.mp3'
+
+    audio_source = discord.FFmpegPCMAudio(sound)
     voice_client.play(audio_source)
 
     # Poczekaj, aż dźwięk się skończy
-    while voice_client.is_playing():
-        await asyncio.sleep(1)
+    # while voice_client.is_playing():
+    #    await asyncio.sleep(1)
 
     print("dźwięk został odtworzony")
 
