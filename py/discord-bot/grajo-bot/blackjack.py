@@ -2,6 +2,7 @@ import random
 import discord
 from discord import app_commands, Embed
 from asyncio import sleep, create_task
+from datetime import datetime
 
 import json
 import os
@@ -31,25 +32,25 @@ class Player:
         self.split_used = False
 
         # Statystyki
-        self.total_games = data.get('total_games', 0) if data else 0
         self.wins = data.get('wins', 0) if data else 0
         self.losses = data.get('losses', 0) if data else 0
         self.pushes = data.get('pushes', 0) if data else 0
         self.blackjacks = data.get('blackjacks', 0) if data else 0
         self.max_balance = data.get('max_balance', 1000) if data else 1000
         self.biggest_win = data.get('biggest_win', 0) if data else 0
+        self.games_by_day = data.get('games_by_day', {}) if data else {}
 
     def to_dict(self):
         return {
             'display_name': self.display_name,
             'chips': self.chips,
-            'total_games': self.total_games,
             'wins': self.wins,
             'losses': self.losses,
             'pushes': self.pushes,
             'blackjacks': self.blackjacks,
             'max_balance': self.max_balance,
             'biggest_win': self.biggest_win,
+            'games_by_day': self.games_by_day
         }
 
 
@@ -169,6 +170,15 @@ async def update_table(channel, sleep_time=0):
         await finalize_game(channel)
 
 
+def update_games_by_day(player):
+    """Aktualizuje liczbę gier gracza na dzień"""
+    today = datetime.now().strftime('%Y-%m-%d')
+    if today in player.games_by_day:
+        player.games_by_day[today] += 1
+    else:
+        player.games_by_day[today] = 1
+
+
 async def finalize_game(channel):
     global game_active, dealer, players
 
@@ -185,7 +195,7 @@ async def finalize_game(channel):
     for player_id, player in players.items():
         total_winnings = 0
         hand_info = ""
-        player.total_games += 1
+
         for i, hand in enumerate(player.hands):
             hand_value = calculate_hand_value(hand)
             winnings = 0
@@ -234,6 +244,7 @@ async def finalize_game(channel):
         # Aktualizacja statystyk
         player.max_balance = max(player.max_balance, player.chips)
         player.biggest_win = max(player.biggest_win, total_balance)
+        update_games_by_day(player)
 
         embed.add_field(
             name=f"Gracz: {player.user.display_name}",
@@ -262,21 +273,21 @@ def setup_blackjack_commands(bot: discord.Client):
         player_data = load_player_data()
 
         if game_active:
-            await interaction.response.send_message("Gra jest już w toku, poczekaj na kolejną rundę!")
+            await interaction.response.send_message("Gra jest już w toku, poczekaj na kolejną rundę!", ephemeral=True)
             return
 
         if interaction.user.id in players:
-            await interaction.response.send_message("Jesteś już w grze!")
+            await interaction.response.send_message("Jesteś już w grze!", ephemeral=True)
             return
 
         if amount < 1:
-            await interaction.response.send_message("Nie możesz postawić mniej niż 1 żeton!")
+            await interaction.response.send_message("Nie możesz postawić mniej niż 1 żeton!", ephemeral=True)
             return
 
         player = Player(interaction.user, player_data.get(str(interaction.user.id), {}))
 
         if amount > player.chips:
-            await interaction.response.send_message("Nie masz wystarczająco żetonów!")
+            await interaction.response.send_message("Nie masz wystarczająco żetonów!", ephemeral=True)
             return
 
         if len(players) == 0:
@@ -302,11 +313,11 @@ def setup_blackjack_commands(bot: discord.Client):
     async def hit(interaction: discord.Interaction):
         player = players.get(interaction.user.id)
         if not player:
-            await interaction.response.send_message("Nie jesteś w grze!")
+            await interaction.response.send_message("Nie jesteś w grze!", ephemeral=True)
             return
 
         if all(player.stands):
-            await interaction.response.send_message("już zakończyłeś ruch dla wszystkich rąk!")
+            await interaction.response.send_message("już zakończyłeś ruch dla wszystkich rąk!", ephemeral=True)
             return
 
         player.hands[player.active_hand].append(deal_card())
@@ -315,11 +326,11 @@ def setup_blackjack_commands(bot: discord.Client):
             player.stands[player.active_hand] = True
             if player.split_used and player.active_hand == 0:
                 player.active_hand = 1
-                await interaction.response.send_message("przekroczyłeś 21 na pierwszej rence, teraz druga reka")
+                await interaction.response.send_message("przekroczyłeś 21 na pierwszej rence, teraz druga reka", ephemeral=True)
             else:
-                await interaction.response.send_message("Przekroczyłeś 21, automatyczne zakończenie ruchu!")
+                await interaction.response.send_message("Przekroczyłeś 21, automatyczne zakończenie ruchu!", ephemeral=True)
         else:
-            await interaction.response.send_message("Dobierasz kartę!")
+            await interaction.response.send_message("Dobierasz kartę!", ephemeral=True)
 
         await update_table(interaction.channel, 0)
 
@@ -328,36 +339,36 @@ def setup_blackjack_commands(bot: discord.Client):
     async def stand(interaction: discord.Interaction):
         player = players.get(interaction.user.id)
         if not player:
-            await interaction.response.send_message("Nie jesteś w grze!")
+            await interaction.response.send_message("Nie jesteś w grze!", ephemeral=True)
             return
 
         player.stands[player.active_hand] = True
 
         if player.split_used and player.active_hand == 0:
             player.active_hand = 1
-            await interaction.response.send_message("Zakończyłeś ruch dla ręki 1, teraz druga ręka")
+            await interaction.response.send_message("Zakończyłeś ruch dla ręki 1, teraz druga ręka", ephemeral=True)
         else:
             await interaction.channel.send(f"Zakończyłeś ruch!")
 
         await update_table(interaction.channel, 0)
 
         if all(player.stands):
-            await interaction.response.send_message(f"{player.user.display_name} zakończył swoją turę!")
+            await interaction.response.send_message(f"{player.user.display_name} zakończył swoją turę!", ephemeral=True)
 
 
     @bot.tree.command(name="double", description="Podwój zakład i dobierz kartę")
     async def double(interaction: discord.Interaction):
         player = players.get(interaction.user.id)
         if not player:
-            await interaction.response.send_message("Nie jesteś w grze!")
+            await interaction.response.send_message("Nie jesteś w grze!", ephemeral=True)
             return
 
         if all(player.stands):
-            await interaction.response.send_message("już zakończyłeś ruch lol")
+            await interaction.response.send_message("już zakończyłeś ruch lol", ephemeral=True)
             return
 
         if player.bet[player.active_hand] > player.chips:
-            await interaction.response.send_message("Nie masz wystarczająco żetonów na podwojenie!")
+            await interaction.response.send_message("Nie masz wystarczająco żetonów na podwojenie!", ephemeral=True)
             return
 
         player.chips -= player.bet[player.active_hand]
@@ -369,9 +380,9 @@ def setup_blackjack_commands(bot: discord.Client):
 
         if player.split_used and player.active_hand == 0:
             player.active_hand = 1
-            await interaction.response.send_message("Podwoiłeś zakład na pierwszej ręce, teraz druga ręka")
+            await interaction.response.send_message("Podwoiłeś zakład na pierwszej ręce, teraz druga ręka", ephemeral=True)
         else:
-            await interaction.response.send_message("Podwoiłeś zakład i zakończyłeś swoją turę!")
+            await interaction.response.send_message("Podwoiłeś zakład i zakończyłeś swoją turę!", ephemeral=True)
 
         await update_table(interaction.channel, 0)
 
@@ -380,23 +391,23 @@ def setup_blackjack_commands(bot: discord.Client):
     async def split(interaction: discord.Interaction):
         player = players.get(interaction.user.id)
         if not player:
-            await interaction.response.send_message("Nie jesteś w grze!")
+            await interaction.response.send_message("Nie jesteś w grze!", ephemeral=True)
             return
 
         if player.split_used:
-            await interaction.response.send_message("Możesz podzielić tylko raz!")
+            await interaction.response.send_message("Możesz podzielić tylko raz!", ephemeral=True)
             return
 
         if len(player.hands[0]) != 2:
-            await interaction.response.send_message("Możesz podzielić tylko rękę z dwoma kartami!")
+            await interaction.response.send_message("Możesz podzielić tylko rękę z dwoma kartami!", ephemeral=True)
             return
 
         if calculate_card_value(player.hands[0][0]) != calculate_card_value(player.hands[0][1]):
-            await interaction.response.send_message("karty są różnej wartości, nie możesz podzielić")
+            await interaction.response.send_message("karty są różnej wartości, nie możesz podzielić", ephemeral=True)
             return
 
         if player.bet[0] > player.chips:
-            await interaction.response.send_message("Nie masz wystarczająco żetonów na podzielenie!")
+            await interaction.response.send_message("Nie masz wystarczająco żetonów na podzielenie!", ephemeral=True)
             return
 
         player.split_used = True
@@ -409,7 +420,7 @@ def setup_blackjack_commands(bot: discord.Client):
 
         save_player_data()
 
-        await interaction.response.send_message("Podzieliłeś rękę na dwie!")
+        await interaction.response.send_message("Podzieliłeś rękę na dwie!", ephemeral=True)
         await update_table(interaction.channel, 0)
 
 
@@ -418,7 +429,7 @@ def setup_blackjack_commands(bot: discord.Client):
         global game_active
 
         if game_active:
-            await interaction.response.send_message("Gra jest w toku, poczekaj na zakończenie rundy!")
+            await interaction.response.send_message("Gra jest w toku, poczekaj na zakończenie rundy!", ephemeral=True)
             return
 
         player_data = load_player_data()
@@ -429,7 +440,7 @@ def setup_blackjack_commands(bot: discord.Client):
             player_data[str(interaction.user.id)] = tipper_data
 
         if tipper_data['chips'] < 1:
-            await interaction.response.send_message("Nie masz wystarczająco żetonów, by dać napiwek!")
+            await interaction.response.send_message("Nie masz wystarczająco żetonów, by dać napiwek!", ephemeral=True)
             return
 
         target_player_data = player_data.get(str(target_player.id))
@@ -448,7 +459,7 @@ def setup_blackjack_commands(bot: discord.Client):
         global game_active
 
         if game_active:
-            await interaction.response.send_message("Gra jest w toku, poczekaj na zakończenie rundy!")
+            await interaction.response.send_message("Gra jest w toku, poczekaj na zakończenie rundy!", ephemeral=True)
             return
 
         player_data = load_player_data()
@@ -459,31 +470,31 @@ def setup_blackjack_commands(bot: discord.Client):
 
         if tipper is None:  # Odbieranie napiwku od dealera (gdy gracz zbankrutował)
             if target_player_data['chips'] > 0:
-                await interaction.response.send_message("Masz jeszcze kasę cwaniaku, tipy tylko dla bankrutów!")
+                await interaction.response.send_message("Masz jeszcze kasę cwaniaku, tipy tylko dla bankrutów!", ephemeral=True)
                 return
 
             target_player_data['chips'] += 1
-            await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!")
+            await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!", ephemeral=True)
         else:  # Odbieranie napiwku od innego gracza
             tipper_data = player_data.get(str(tipper.id))
             pending_tip_target_id = pending_tips.get(str(tipper.id))
 
             if pending_tip_target_id != str(interaction.user.id):
-                await interaction.response.send_message(f"{tipper.display_name} nie wysłał ci napiwku!")
+                await interaction.response.send_message(f"{tipper.display_name} nie wysłał ci napiwku!", ephemeral=True)
                 return
 
             if tipper_data is None:
-                await interaction.response.send_message(f"{tipper.display_name} nie istnieje jakimś cudem?")
+                await interaction.response.send_message(f"{tipper.display_name} nie istnieje jakimś cudem?", ephemeral=True)
                 return
 
             if tipper_data['chips'] < 1:
-                await interaction.response.send_message(f"{tipper.display_name} jest zbankrutowany i nie może dać napiwku!")
+                await interaction.response.send_message(f"{tipper.display_name} jest zbankrutowany i nie może dać napiwku!", ephemeral=True)
                 return
 
             # Przeniesienie 1$ z konta tippera do odbiorcy
             tipper_data['chips'] -= 1
             target_player_data['chips'] += 1
-            await interaction.response.send_message(f"{interaction.user.display_name} odebrał napiwek od {tipper.display_name}!")
+            await interaction.response.send_message(f"{interaction.user.display_name} odebrał napiwek od {tipper.display_name}!", ephemeral=True)
 
             # Usunięcie zakończonego napiwku z pending_tips
             del pending_tips[str(tipper.id)]
@@ -493,5 +504,56 @@ def setup_blackjack_commands(bot: discord.Client):
         # Zapisanie danych graczy
         save_player_data(player_data)
 
+    @bot.tree.command(name="stats", description="Wyświetl statystyki wszystkich graczy")
+    async def stats(interaction: discord.Interaction):
+        player_data = load_player_data()
+        embed = Embed(title="Blackjack Stats", color=0x0000ff)
 
+        for player_id, data in player_data.items():
+            display_name = data['display_name']
+            chips = data['chips']
+            #day_games = data['day_games']
+            #week_games = data['week_games']
+            #total_games = data['total_games']
+            wins = data['wins']
+            losses = data['losses']
+            pushes = data['pushes']
+            blackjacks = data['blackjacks']
+            max_balance = data['max_balance']
+            biggest_win = data['biggest_win']
 
+            # pole dla każdego gracza
+            embed.add_field(
+                name=f"Gracz: {display_name}",
+                value=(
+                    f"🪙 Hajs: {chips}$\n"
+                    #f"🎮 Rozegranych (Today/Week/All): {day_games}/{week_games}/{total_games}\n"
+                    #f"🏆 Win/Push/Lose: {wins}/{pushes}/{losses}-{total_games}\n"
+                    f"🃏 Blackjacks: {blackjacks}\n"
+                    f"🔝 Maksymalny Hajs: {max_balance}\n"
+                    f"💥 Największa Wygrana: {biggest_win}"
+                ),
+                inline=False
+            )
+
+        await interaction.response.send_message(embed=embed)
+
+    @bot.tree.command(name="help", description="Wyświetl pomoc")
+    async def help(interaction: discord.Interaction):
+        embed = Embed(title="Blackjack Help", color=0xffffff)
+        embed.add_field(
+            name="Komendy",
+            value=(
+                "/bet <kwota> - Postaw zakład\n"
+                "/hit - Dobierz kartę\n"
+                "/stand - Zakończ swoją turę\n"
+                "/double - Podwój zakład i dobierz kartę\n"
+                "/split - Podziel rękę na dwie\n"
+                "/tip <gracz> - Podaruj napiwek innemu graczowi\n"
+                "/thanks_for_the_tip - Podziękuj za napiwek albo odbierz napiwek jako zbankrutowany gracz\n"
+                "/stats - Wyświetl statystyki wszystkich graczy"
+            ),
+            inline=False
+        )
+
+        await interaction.response.send_message(embed=embed)

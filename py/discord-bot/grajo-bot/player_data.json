@@ -1,24 +1,13 @@
 {
-    "786525018740883456": {
-        "display_name": "bo\u017ce jehowa nauka jarek lichwa\u0142a",
-        "chips": 1000,
-        "total_games": 1,
-        "wins": 1,
+    "336921078138011650": {
+        "display_name": "czlowiek - jogurt",
+        "chips": 980,
+        "wins": 0,
         "losses": 0,
         "pushes": 0,
         "blackjacks": 0,
         "max_balance": 1000,
-        "biggest_win": 20
-    },
-    "336921078138011650": {
-        "display_name": "czlowiek - jogurt",
-        "chips": 989,
-        "total_games": 3,
-        "wins": 1,
-        "losses": 2,
-        "pushes": 0,
-        "blackjacks": 0,
-        "max_balance": 1009,
-        "biggest_win": 29
+        "biggest_win": 0,
+        "games_by_day": {}
     }
 }

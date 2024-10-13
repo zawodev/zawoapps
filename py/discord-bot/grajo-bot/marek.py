@@ -45,12 +45,12 @@ async def setup_hook():
 
 # ======================== DISCORD BOT EVENTS ========================
 
+voice_client = None
+
 async def on_voice_state_update(member, before, after):
-
-    voice_client = None
-
+    global voice_client
     # na razie wyłączamy funkcje dołączania na voice call
-    # return
+    return
 
     if member.bot: # jeśli bot dołączył na kanał głosowy, to nic nie rób
         return
@@ -89,20 +89,6 @@ async def on_voice_state_update(member, before, after):
             # bot opuścił kanał głosowy
             print("bot opuścił kanał głosowy")
 
-
-async def on_ready():
-
-    # ustaw status bota jako niewidoczny
-    await bot.change_presence(status=discord.Status.invisible)
-
-    print(f'bot zalogowany jako {bot.user}')
-    try:
-        synced = await bot.tree.sync()
-        print(f'Synced {len(synced)} slash commands.')
-    except Exception as e:
-        print(e)
-
-    #await channel.send("bot is online")
 
 async def on_message(message):
     if message.author == bot.user:
@@ -176,7 +162,7 @@ async def play_sound(interaction: discord.Interaction, channel_id: int = 1028303
         await interaction.response.send_message(f'nie masz uprawnień do użycia tej komendy')
         return
 
-    await interaction.response.send_message("wysłano dźwięk na kanale: " + interaction.channel.name, ephemeral=True)
+    await interaction.response.send_message("wysłano dźwięk na kanale: " + bot.get_channel(channel_id).name, ephemeral=True)
 
     guild = interaction.guild  # serwer, na którym jest bot
     voice_channel = guild.get_channel(channel_id)  # kanał głosowy na podstawie id
@@ -230,7 +216,6 @@ def setup_marek_commands(new_bot):
     # ------------------------ EVENTS ------------------------
 
     bot.add_listener(on_voice_state_update, name="on_voice_state_update")
-    bot.add_listener(on_ready, name="on_ready")
     bot.add_listener(on_message, name="on_message")
 
     # ------------------------ TIMER ------------------------
