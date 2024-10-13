@@ -13,6 +13,9 @@ players = {}
 deck = []
 dealer = None
 
+# Słownik do przechowywania oczekujących napiwków {odbiorca_id: nadawca_id}
+pending_tips = {}
+
 DATA_FILE = "player_data.json"
 
 
@@ -70,12 +73,18 @@ def load_player_data():
 
 def save_player_data(player_data=None):
     """Zapisz dane graczy do pliku JSON"""
+
+    existing_data = load_player_data()
+
     if player_data is None:
-        player_data = {player_id: player.to_dict() for player_id, player in players.items()}
+        player_data = {str(player_id): player.to_dict() for player_id, player in players.items()}
+
+    # nadpisz istniejące dane
+    for player_id, data in player_data.items():
+        existing_data[player_id] = data
 
     with open(DATA_FILE, 'w') as f:
-        json.dump(player_data, f, indent=4)
-
+        json.dump(existing_data, f, indent=4)
 
 
 def shuffle_deck():
@@ -264,8 +273,7 @@ def setup_blackjack_commands(bot: discord.Client):
             await interaction.response.send_message("Nie możesz postawić mniej niż 1 żeton!")
             return
 
-        # Wczytaj dane gracza, jeśli istnieją
-        player = players.get(interaction.user.id, Player(interaction.user, player_data.get(str(interaction.user.id), {}))) # to nie powinien byc bet tylko tworzyc zawsze klase na nowo
+        player = Player(interaction.user, player_data.get(str(interaction.user.id), {}))
 
         if amount > player.chips:
             await interaction.response.send_message("Nie masz wystarczająco żetonów!")
@@ -281,8 +289,7 @@ def setup_blackjack_commands(bot: discord.Client):
 
         player.bet[0] = amount
         player.chips -= amount
-        card = deal_card()
-        player.hands = [[card, card]]
+        player.hands = [[deal_card(), deal_card()]]
         player.stands = [False]
         players[interaction.user.id] = player
 
@@ -406,25 +413,85 @@ def setup_blackjack_commands(bot: discord.Client):
         await update_table(interaction.channel, 0)
 
 
-    @bot.tree.command(name="thanks_for_the_tip", description="Podaruj 1$ graczowi, który zbankrutował.")
-    async def thanks_for_the_tip(interaction: discord.Interaction):
+    @bot.tree.command(name="tip", description="Podaruj napiwek innemu graczowi")
+    async def tip(interaction: discord.Interaction, target_player: discord.Member):
+        global game_active
+
+        if game_active:
+            await interaction.response.send_message("Gra jest w toku, poczekaj na zakończenie rundy!")
+            return
+
         player_data = load_player_data()
-        player = player_data.get(str(interaction.user.id))
+        tipper_data = player_data.get(str(interaction.user.id))
 
-        if not player:
-            await interaction.response.send_message("nigdy nie grałeś? najpierw zbankrutuj lol")
+        if tipper_data is None:
+            tipper_data = Player(interaction.user).to_dict()
+            player_data[str(interaction.user.id)] = tipper_data
+
+        if tipper_data['chips'] < 1:
+            await interaction.response.send_message("Nie masz wystarczająco żetonów, by dać napiwek!")
             return
 
-        if player['chips'] > 0:
-            await interaction.response.send_message("masz jeszcze kase cwaniaku, tipy tylko dla bankrutów")
-            return
+        target_player_data = player_data.get(str(target_player.id))
+        if target_player_data is None:
+            target_player_data = Player(target_player).to_dict()
+            player_data[str(target_player.id)] = target_player_data
 
-        # Dodanie 1$ do konta gracza
-        player['chips'] += 1
-        await interaction.response.send_message("Ho ho ho! No problem " + player['display_name'] + "!")
+        pending_tips[str(interaction.user.id)] = str(target_player.id)
+        await interaction.response.send_message(f"Co się mówi, {target_player.mention}? Użyj /thanks_for_the_tip, aby odebrać napiwek!")
 
-        # Zaktualizowanie informacji o graczach i zapisanie do pliku
-        # await update_table(interaction.channel, 0) # INNY ENUM TEN Z STATAMI
+        # Zapisanie stanu graczy
         save_player_data(player_data)
+
+    @bot.tree.command(name="thanks_for_the_tip", description="Podziękuj za napiwek albo odbierz napiwek jako zbankrutowany gracz")
+    async def thanks_for_the_tip(interaction: discord.Interaction, tipper: discord.Member = None):
+        global game_active
+
+        if game_active:
+            await interaction.response.send_message("Gra jest w toku, poczekaj na zakończenie rundy!")
+            return
+
+        player_data = load_player_data()
+        target_player_data = player_data.get(str(interaction.user.id))
+
+        if target_player_data is None:
+            target_player_data = Player(interaction.user).to_dict()
+
+        if tipper is None:  # Odbieranie napiwku od dealera (gdy gracz zbankrutował)
+            if target_player_data['chips'] > 0:
+                await interaction.response.send_message("Masz jeszcze kasę cwaniaku, tipy tylko dla bankrutów!")
+                return
+
+            target_player_data['chips'] += 1
+            await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!")
+        else:  # Odbieranie napiwku od innego gracza
+            tipper_data = player_data.get(str(tipper.id))
+            pending_tip_target_id = pending_tips.get(str(tipper.id))
+
+            if pending_tip_target_id != str(interaction.user.id):
+                await interaction.response.send_message(f"{tipper.display_name} nie wysłał ci napiwku!")
+                return
+
+            if tipper_data is None:
+                await interaction.response.send_message(f"{tipper.display_name} nie istnieje jakimś cudem?")
+                return
+
+            if tipper_data['chips'] < 1:
+                await interaction.response.send_message(f"{tipper.display_name} jest zbankrutowany i nie może dać napiwku!")
+                return
+
+            # Przeniesienie 1$ z konta tippera do odbiorcy
+            tipper_data['chips'] -= 1
+            target_player_data['chips'] += 1
+            await interaction.response.send_message(f"{interaction.user.display_name} odebrał napiwek od {tipper.display_name}!")
+
+            # Usunięcie zakończonego napiwku z pending_tips
+            del pending_tips[str(tipper.id)]
+            player_data[str(tipper.id)] = tipper_data
+
+        player_data[str(interaction.user.id)] = target_player_data
+        # Zapisanie danych graczy
+        save_player_data(player_data)
+
 
 
