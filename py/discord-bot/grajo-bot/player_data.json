@@ -1,73 +1,77 @@
 {
     "dealer": {
         "display_name": "Dealer",
-        "chips": 2900.0,
-        "wins": 9,
-        "losses": 12,
-        "pushes": 1,
-        "blackjacks": 1,
-        "max_balance": 2900.0,
+        "chips": 2258,
+        "wins": 19,
+        "losses": 21,
+        "pushes": 2,
+        "blackjacks": 2,
+        "max_balance": 2978,
         "biggest_win": 3200,
         "biggest_loss": 3200,
         "games_by_day": {
-            "2024-10-13": 19
+            "2024-10-13": 39
         },
-        "total_won_chips": 12000,
-        "total_lost_chips": 9100.0,
+        "total_won_chips": 12512,
+        "total_lost_chips": 10254,
         "free_bet_by_day": {}
     },
     "336921078138011650": {
         "display_name": "czlowiek - jogurt",
-        "chips": 1100,
-        "wins": 1,
-        "losses": 0,
+        "chips": 1568,
+        "wins": 7,
+        "losses": 2,
         "pushes": 0,
-        "blackjacks": 0,
-        "max_balance": 1100,
-        "biggest_win": 50,
-        "biggest_loss": 0,
+        "blackjacks": 2,
+        "max_balance": 1569,
+        "biggest_win": 400,
+        "biggest_loss": 10,
         "games_by_day": {
-            "2024-10-13": 1
+            "2024-10-13": 9
         },
-        "total_won_chips": 100,
-        "total_lost_chips": 0,
+        "total_won_chips": 579,
+        "total_lost_chips": 11,
         "free_bet_by_day": {
             "2024-10-13": true
         }
     },
     "380820820466991116": {
         "display_name": "marek romper extreme",
-        "chips": 0.0,
+        "chips": 0,
         "wins": 10,
-        "losses": 7,
-        "pushes": 1,
+        "losses": 9,
+        "pushes": 2,
         "blackjacks": 1,
-        "max_balance": 7400.0,
+        "max_balance": 7400,
         "biggest_win": 3200,
         "biggest_loss": 3200,
         "games_by_day": {
-            "2024-10-13": 18
+            "2024-10-13": 21
         },
-        "total_won_chips": 9800.0,
-        "total_lost_chips": 10800,
-        "free_bet_by_day": {}
+        "total_won_chips": 9851,
+        "total_lost_chips": 10851,
+        "free_bet_by_day": {
+            "2024-10-13": true
+        }
     },
     "350207555747840001": {
         "display_name": "obsranejaja41",
         "chips": 0,
         "wins": 0,
-        "losses": 1,
+        "losses": 2,
         "pushes": 0,
         "blackjacks": 0,
         "max_balance": 0,
         "biggest_win": 0,
         "biggest_loss": 1000,
         "games_by_day": {
-            "2024-10-13": 1
+            "2024-10-13": 2
         },
-        "total_won_chips": 0,
-        "total_lost_chips": 1000,
-        "free_bet_by_day": {}
+        "total_won_chips": 50,
+        "total_lost_chips": 1050,
+        "free_bet_by_day": {
+            "2024-10-13": true
+        }
     },
     "223497963576492033": {
         "display_name": "Gambling Noob",
@@ -84,6 +88,23 @@
         },
         "total_won_chips": 1000,
         "total_lost_chips": 2000,
+        "free_bet_by_day": {}
+    },
+    "133333973282586625": {
+        "display_name": "ma\u0142pi typ",
+        "chips": 1175,
+        "wins": 3,
+        "losses": 5,
+        "pushes": 0,
+        "blackjacks": 1,
+        "max_balance": 1400,
+        "biggest_win": 400,
+        "biggest_loss": 100,
+        "games_by_day": {
+            "2024-10-13": 8
+        },
+        "total_won_chips": 575,
+        "total_lost_chips": 400,
         "free_bet_by_day": {}
     }
 }

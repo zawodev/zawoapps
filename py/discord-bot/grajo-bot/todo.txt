@@ -3,3 +3,5 @@
 -sklep
 -sterowanie reakcjami
 -bilans dealera (dzis, tydzien, overall)
+-staty per osobe
+-png na wyjściu jakieś nwm (pillow, templatki html render pdf)

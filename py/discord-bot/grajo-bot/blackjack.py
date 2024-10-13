@@ -274,7 +274,7 @@ async def finalize_game(channel):
                 winnings = player.bet[i]
 
             # zapis wyników każdej ręki
-            total_winnings += winnings
+            total_winnings += int(winnings)
             balance = winnings - player.bet[i]
             winnings_txt = f"{'+' if balance > 0 else ''}{balance}"
             hand_info += f"{' '.join(hand)} [{hand_value}] - {result} ({winnings_txt}$)\n"
@@ -652,6 +652,27 @@ def setup_blackjack_commands(bot: discord.Client):
             )
 
         await interaction.response.send_message(embed=embed)
+
+
+    @bot.tree.command(name="ranking", description="wyświetl ranking graczy od najbogatszego do najbiedniejszego")
+    async def ranking(interaction: discord.Interaction):
+        player_data = load_player_data()
+        sorted_players = sorted(player_data.items(), key=lambda x: x[1]['chips'], reverse=True)
+
+        embed = Embed(title="Blackjack Ranking", color=0xff00ff)
+
+        for player_id, data in sorted_players:
+            display_name = data['display_name']
+            chips = data['chips']
+
+            embed.add_field(
+                name=f"Gracz: {display_name}",
+                value=f"🪙 Hajs: {chips}$",
+                inline=False
+            )
+
+        await interaction.response.send_message(embed=embed)
+
 
     @bot.tree.command(name="help", description="Wyświetl pomoc")
     async def help(interaction: discord.Interaction):
