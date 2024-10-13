@@ -32,6 +32,7 @@ class Participant:
         self.games_by_day = data.get('games_by_day', {}) if data else {}
         self.total_won_chips = data.get('total_won_chips', 0) if data else 0
         self.total_lost_chips = data.get('total_lost_chips', 0) if data else 0
+        self.free_bet_by_day = data.get('free_bet_by_day', {}) if data else {}
 
     def to_dict(self):
         return {
@@ -46,7 +47,8 @@ class Participant:
             'biggest_loss': self.biggest_loss,
             'games_by_day': self.games_by_day,
             'total_won_chips': self.total_won_chips,
-            'total_lost_chips': self.total_lost_chips
+            'total_lost_chips': self.total_lost_chips,
+            'free_bet_by_day': self.free_bet_by_day
         }
 
 
@@ -154,21 +156,24 @@ def create_table_embed():
     embed = Embed(title="Place your bets now!", color=0x00ff00)
     global dealer, players
 
-    # Karty dealera
-    dealer_hand_info = f"{dealer.hand[0]} ??"  # Ukryta karta dealera
-    embed.add_field(name="Dealer:", value=dealer_hand_info, inline=False)
+
 
     # Karty graczy
     for player_id, player in players.items():
         bet_sum = sum(player.bet)
-        hand_info = f"{player.chips + bet_sum}$ -> {player.chips}$ ({bet_sum}$)\n"
+        #hand_info = f"{player.chips + bet_sum}$ -> {player.chips}$ ({bet_sum}$)\n"
+        hand_info = ""
         for i, hand in enumerate(player.hands):
             hand_value = calculate_hand_value(hand)
             status = "✅" if player.stands[i] else "⏸️"
 
-            hand_info += f"{status} - {' '.join(hand)} [{hand_value}]\n"
+            hand_info += f"{status} - {' '.join(hand)} [{hand_value}] ({bet_sum}$)\n"
 
         embed.add_field(name=f"Gracz: {player.user.display_name}", value=hand_info, inline=False)
+
+    # Karty dealera
+    dealer_hand_info = f"{dealer.hand[0]} ??"  # Ukryta karta dealera
+    embed.add_field(name="Dealer:", value=dealer_hand_info, inline=False)
 
     return embed
 
@@ -207,8 +212,8 @@ async def finalize_game(channel):
     embed = Embed(title="Thanks for the tip!", color=0xff0000)
 
     dealer_hand_value = calculate_hand_value(dealer.hand)
-    dealer_hand_info = f"{' '.join(dealer.hand)} [{dealer_hand_value}]"
-    embed.add_field(name="Dealer:", value=dealer_hand_info, inline=False)
+    #dealer_hand_info = f"{' '.join(dealer.hand)} [{dealer_hand_value}]"
+    #embed.add_field(name="Dealer:", value=dealer_hand_info, inline=False)
 
     total_dealer_balance = 0
     total_dealer_winnings = 0
@@ -314,6 +319,62 @@ async def finalize_game(channel):
 def setup_blackjack_commands(bot: discord.Client):
     """Dodaje komendy blackjacka do bota"""
 
+    async def place_bet(interaction: discord.Interaction, player: Player, amount: int):
+        global players, dealer, deck, wait_time
+
+        if len(players) == 0:
+            shuffle_deck()
+            player_data = load_player_data()
+            dealer_data = player_data.get('dealer', {})
+            dealer = Dealer(dealer_data)
+            dealer.hand = [deal_card(), deal_card()]
+            await interaction.channel.send(interaction.user.display_name + " rozpoczął grę! Macie: " + str(
+                wait_time) + " sekund na postawienie zakładu!")
+            create_task(update_table(interaction.channel, wait_time))
+
+        player.bet[0] = amount
+        dealer.chips += amount
+        player.hands = [[deal_card(), deal_card()]]
+        player.stands = [False]
+        players[interaction.user.id] = player
+
+        save_player_data()
+
+        # napisz ile osób gra i kto dołączył
+        await interaction.channel.send(f"> {interaction.user.display_name} dołączył do gry! (łącznie {len(players)} graczy)")
+
+
+    @bot.tree.command(name="freebet", description="Jeden dziennie darmowy zakład za 50$")
+    async def freebet(interaction: discord.Interaction):
+        player_data = load_player_data()
+        player = player_data.get(str(interaction.user.id), {})
+        today = datetime.now().strftime('%Y-%m-%d')
+
+        if today in player.get('free_bet_by_day', {}):
+            await interaction.response.send_message("Już odebrałeś darmowy zakład dzisiaj!", ephemeral=True)
+            return
+
+        if game_active:
+            await interaction.response.send_message("Gra jest już w toku, poczekaj na kolejną rundę!", ephemeral=True)
+            return
+
+        if interaction.user.id in players:
+            await interaction.response.send_message("Jesteś już w grze!", ephemeral=True)
+            return
+
+        player_instance = Player(interaction.user, player)
+        player_instance.free_bet_by_day[today] = True
+        player_instance.total_won_chips += 50
+
+        dealer.chips -= 50
+        dealer.total_lost_chips += 50
+
+        save_player_data()
+
+        await interaction.response.send_message("Odebrano darmowy zakład!", ephemeral=True)
+        await place_bet(interaction, player_instance, 50)
+
+
     @bot.tree.command(name="bet", description="Postaw zakład")
     async def bet(interaction: discord.Interaction, amount: int):
         global game_active, players, dealer, deck, wait_time
@@ -332,33 +393,16 @@ def setup_blackjack_commands(bot: discord.Client):
             await interaction.response.send_message("Nie możesz postawić mniej niż 1 żeton!", ephemeral=True)
             return
 
-        player = Player(interaction.user, player_data.get(str(interaction.user.id), {}))
+        player_instance = Player(interaction.user, player_data.get(str(interaction.user.id), {}))
 
-        if amount > player.chips:
+        if amount > player_instance.chips:
             await interaction.response.send_message("Nie masz wystarczająco żetonów!", ephemeral=True)
             return
 
-        if len(players) == 0:
-            shuffle_deck()
-            dealer_data = player_data.get('dealer', {})
-            dealer = Dealer(dealer_data)
-            dealer.hand = [deal_card(), deal_card()]
-            await interaction.channel.send("Gracz: " + interaction.user.display_name + " zaczął grę! Macie: " + str(
-                wait_time) + " sekund na postawienie zakładu!")
-            create_task(update_table(interaction.channel, wait_time))
+        player_instance.chips -= amount
 
-        player.bet[0] = amount
-        player.chips -= amount
-        dealer.chips += amount
-        player.hands = [[deal_card(), deal_card()]]
-        player.stands = [False]
-        players[interaction.user.id] = player
-
-        save_player_data()
-
-        # napisz ile osób gra i kto dołączył
-        await interaction.channel.send(f"Gracz: {interaction.user.display_name} dołączył do gry! ({len(players)} graczy)")
-        await interaction.response.send_message(f"Postawiłeś {amount} żetonów!", ephemeral=True)
+        await interaction.response.send_message("Postawiono zakład o wysokości " + str(amount) + "$!", ephemeral=True)
+        await place_bet(interaction, player_instance, amount)
 
 
     @bot.tree.command(name="hit", description="Dobierz kartę")
@@ -423,6 +467,7 @@ def setup_blackjack_commands(bot: discord.Client):
             return
 
         player.chips -= player.bet[player.active_hand]
+        dealer.chips += player.bet[player.active_hand]
         player.bet[player.active_hand] *= 2
         player.hands[player.active_hand].append(deal_card())
         player.stands[player.active_hand] = True
@@ -463,6 +508,7 @@ def setup_blackjack_commands(bot: discord.Client):
 
         player.split_used = True
         player.chips -= player.bet[0]
+        dealer.chips += player.bet[0]
         player.bet.append(player.bet[0])
         player.hands.append([player.hands[0].pop()])
         player.hands[0].append(deal_card())
@@ -515,6 +561,7 @@ def setup_blackjack_commands(bot: discord.Client):
 
         player_data = load_player_data()
         target_player_data = player_data.get(str(interaction.user.id))
+        dealer_data = player_data.get('dealer', {})
 
         if target_player_data is None:
             target_player_data = Player(interaction.user).to_dict()
@@ -525,6 +572,9 @@ def setup_blackjack_commands(bot: discord.Client):
                 return
 
             target_player_data['chips'] += 1
+            target_player_data['total_won_chips'] += 1
+            dealer_data['chips'] -= 1
+            dealer_data['total_lost_chips'] += 1
             await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!", ephemeral=True)
         else:  # Odbieranie napiwku od innego gracza
             tipper_data = player_data.get(str(tipper.id))
@@ -544,7 +594,9 @@ def setup_blackjack_commands(bot: discord.Client):
 
             # Przeniesienie 1$ z konta tippera do odbiorcy
             tipper_data['chips'] -= 1
+            tipper_data['total_lost_chips'] += 1
             target_player_data['chips'] += 1
+            target_player_data['total_won_chips'] += 1
             await interaction.response.send_message(f"{interaction.user.display_name} odebrał napiwek od {tipper.display_name}!", ephemeral=True)
 
             # Usunięcie zakończonego napiwku z pending_tips
@@ -612,9 +664,10 @@ def setup_blackjack_commands(bot: discord.Client):
                 "/stand - Zakończ swoją turę\n"
                 "/double - Podwój zakład i dobierz kartę\n"
                 "/split - Podziel rękę na dwie\n"
+                "/freebet - Odbierz darmowy zakład o wysokości 50$\n"
                 "/tip <gracz> - Podaruj napiwek innemu graczowi\n"
                 "/thanks_for_the_tip - Podziękuj za napiwek albo odbierz napiwek jako zbankrutowany gracz\n"
-                "/stats - Wyświetl statystyki wszystkich graczy"
+                "/stats - Wyświetl statystyki wszystkich graczy\n"
             ),
             inline=False
         )
