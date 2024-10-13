@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 
+from blackjack import setup_blackjack_commands
+
 # ======================== DISCORD BOT ========================
 
 load_dotenv()
@@ -238,6 +240,10 @@ async def play_sound(interaction: discord.Interaction, channel_id: int = 1028303
     # print("bot opuścił kanał głosowy")
 
 
+# ======================== BLACKJACK ========================
 
+setup_blackjack_commands(bot)
+
+# ======================== RUN DISCORD BOT ========================
 
 bot.run(token)
