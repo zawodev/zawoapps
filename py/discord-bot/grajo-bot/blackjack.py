@@ -3,6 +3,9 @@ import discord
 from discord import app_commands, Embed
 from asyncio import sleep, create_task
 
+import json
+import os
+
 # Globalne dane gry
 game_active = False
 wait_time = 1
@@ -10,21 +13,69 @@ players = {}
 deck = []
 dealer = None
 
+DATA_FILE = "player_data.json"
+
 
 class Player:
-    def __init__(self, user):
+    def __init__(self, user, data=None):
         self.user = user
-        self.chips = 1000
+        self.display_name = user.display_name
+        self.chips = data.get('chips', 1000) if data else 1000
         self.bet = [0]  # Zakład na każdą rękę
         self.hands = [[]]  # Obsługuje do dwóch rąk
         self.stands = [False]  # Zapisuje stan każdej ręki
         self.active_hand = 0
         self.split_used = False
 
+        # Statystyki
+        self.total_games = data.get('total_games', 0) if data else 0
+        self.wins = data.get('wins', 0) if data else 0
+        self.losses = data.get('losses', 0) if data else 0
+        self.pushes = data.get('pushes', 0) if data else 0
+        self.blackjacks = data.get('blackjacks', 0) if data else 0
+        self.max_balance = data.get('max_balance', 1000) if data else 1000
+        self.biggest_win = data.get('biggest_win', 0) if data else 0
+
+    def to_dict(self):
+        return {
+            'display_name': self.display_name,
+            'chips': self.chips,
+            'total_games': self.total_games,
+            'wins': self.wins,
+            'losses': self.losses,
+            'pushes': self.pushes,
+            'blackjacks': self.blackjacks,
+            'max_balance': self.max_balance,
+            'biggest_win': self.biggest_win,
+        }
+
 
 class Dealer:
     def __init__(self):
         self.hand = []
+
+
+def load_player_data():
+    """Wczytaj dane graczy z pliku JSON"""
+    if not os.path.exists(DATA_FILE):
+        return {}
+
+    try:
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {}
+
+
+
+def save_player_data(player_data=None):
+    """Zapisz dane graczy do pliku JSON"""
+    if player_data is None:
+        player_data = {player_id: player.to_dict() for player_id, player in players.items()}
+
+    with open(DATA_FILE, 'w') as f:
+        json.dump(player_data, f, indent=4)
+
 
 
 def shuffle_deck():
@@ -75,20 +126,22 @@ def create_table_embed():
     embed = Embed(title="Place your bets now!", color=0x00ff00)
     global dealer, players
 
+    # Karty dealera
+    dealer_hand_info = f"{dealer.hand[0]} ??"  # Ukryta karta dealera
+    embed.add_field(name="Dealer:", value=dealer_hand_info, inline=False)
+
     # Karty graczy
     for player_id, player in players.items():
-        hand_info = ""
+        bet_sum = sum(player.bet)
+        hand_info = f"{player.chips + bet_sum}$ -> {player.chips}$ ({bet_sum}$)\n"
         for i, hand in enumerate(player.hands):
             hand_value = calculate_hand_value(hand)
             status = "✅" if player.stands[i] else "⏸️"
 
             hand_info += f"{status} - {' '.join(hand)} [{hand_value}]\n"
 
-        embed.add_field(name=f"Gracz: {player.user.display_name} ({sum(player.bet)}$)", value=hand_info, inline=False)
+        embed.add_field(name=f"Gracz: {player.user.display_name}", value=hand_info, inline=False)
 
-    # Karty dealera
-    dealer_hand_info = f"{dealer.hand[0]} ??"  # Ukryta karta dealera
-    embed.add_field(name="Karty dealera", value=dealer_hand_info, inline=False)
     return embed
 
 
@@ -123,30 +176,39 @@ async def finalize_game(channel):
     for player_id, player in players.items():
         total_winnings = 0
         hand_info = ""
+        player.total_games += 1
         for i, hand in enumerate(player.hands):
             hand_value = calculate_hand_value(hand)
             winnings = 0
 
             if dealer_hand_value == 21 and len(dealer.hand) == 2:
                 result = "dealer blackjack"
+                player.losses += 1
                 winnings = 0
             elif hand_value > 21:
                 result = "busted"
+                player.losses += 1
                 winnings = 0
             elif hand_value == 21 and len(hand) == 2:
                 result = "blackjack"
+                player.blackjacks += 1
+                player.wins += 1
                 winnings = player.bet[i] * 2.5
             elif dealer_hand_value > 21:
                 result = "dealer busted"
+                player.wins += 1
                 winnings = player.bet[i] * 2
             elif hand_value > dealer_hand_value:
                 result = "brawooo wygrałeś"
+                player.wins += 1
                 winnings = player.bet[i] * 2
             elif hand_value < dealer_hand_value:
                 result = "dealer lepszy"
+                player.losses += 1
                 winnings = 0
             else:
                 result = "push"
+                player.pushes += 1
                 winnings = player.bet[i]
 
             # zapis wyników każdej ręki
@@ -159,11 +221,18 @@ async def finalize_game(channel):
         player.chips += total_winnings
         total_balance = total_winnings - sum(player.bet)
         total_winnings_txt = f"{'+' if total_balance > 0 else ''}{total_balance}"
+
+        # Aktualizacja statystyk
+        player.max_balance = max(player.max_balance, player.chips)
+        player.biggest_win = max(player.biggest_win, total_balance)
+
         embed.add_field(
             name=f"Gracz: {player.user.display_name}",
             value=f"{player.chips - total_balance}$ -> {player.chips}$ ({total_winnings_txt}$)\n{hand_info}",
             inline=False
         )
+
+    save_player_data()  # Zapisz dane po zakończeniu gry
 
     game_active = False
     players.clear()
@@ -173,12 +242,15 @@ async def finalize_game(channel):
 
 
 
+
 def setup_blackjack_commands(bot: discord.Client):
     """Dodaje komendy blackjacka do bota"""
 
     @bot.tree.command(name="bet", description="Postaw zakład")
     async def bet(interaction: discord.Interaction, amount: int):
         global game_active, players, dealer, deck, wait_time
+
+        player_data = load_player_data()
 
         if game_active:
             await interaction.response.send_message("Gra jest już w toku, poczekaj na kolejną rundę!")
@@ -192,7 +264,9 @@ def setup_blackjack_commands(bot: discord.Client):
             await interaction.response.send_message("Nie możesz postawić mniej niż 1 żeton!")
             return
 
-        player = players.get(interaction.user.id, Player(interaction.user))
+        # Wczytaj dane gracza, jeśli istnieją
+        player = players.get(interaction.user.id, Player(interaction.user, player_data.get(str(interaction.user.id), {}))) # to nie powinien byc bet tylko tworzyc zawsze klase na nowo
+
         if amount > player.chips:
             await interaction.response.send_message("Nie masz wystarczająco żetonów!")
             return
@@ -201,7 +275,8 @@ def setup_blackjack_commands(bot: discord.Client):
             shuffle_deck()
             dealer = Dealer()
             dealer.hand = [deal_card(), deal_card()]
-            await interaction.channel.send("Gracz: " + interaction.user.display_name + " zaczął grę! Macie: " + str(wait_time) + " sekund na postawienie zakładu!")
+            await interaction.channel.send("Gracz: " + interaction.user.display_name + " zaczął grę! Macie: " + str(
+                wait_time) + " sekund na postawienie zakładu!")
             create_task(update_table(interaction.channel, wait_time))
 
         player.bet[0] = amount
@@ -210,6 +285,8 @@ def setup_blackjack_commands(bot: discord.Client):
         player.hands = [[card, card]]
         player.stands = [False]
         players[interaction.user.id] = player
+
+        save_player_data()
 
         await interaction.response.send_message(f"Postawiłeś {amount} żetonów!", ephemeral=True)
 
@@ -272,14 +349,16 @@ def setup_blackjack_commands(bot: discord.Client):
             await interaction.response.send_message("już zakończyłeś ruch lol")
             return
 
-        if player.bet[0] > player.chips:
+        if player.bet[player.active_hand] > player.chips:
             await interaction.response.send_message("Nie masz wystarczająco żetonów na podwojenie!")
             return
 
-        player.chips -= player.bet
-        player.bet[0] *= 2
+        player.chips -= player.bet[player.active_hand]
+        player.bet[player.active_hand] *= 2
         player.hands[player.active_hand].append(deal_card())
         player.stands[player.active_hand] = True
+
+        save_player_data()
 
         if player.split_used and player.active_hand == 0:
             player.active_hand = 1
@@ -309,15 +388,43 @@ def setup_blackjack_commands(bot: discord.Client):
             await interaction.response.send_message("karty są różnej wartości, nie możesz podzielić")
             return
 
-        if player.bet > player.chips:
+        if player.bet[0] > player.chips:
             await interaction.response.send_message("Nie masz wystarczająco żetonów na podzielenie!")
+            return
 
         player.split_used = True
-        player.chips -= player.bet
+        player.chips -= player.bet[0]
+        player.bet.append(player.bet[0])
         player.hands.append([player.hands[0].pop()])
         player.hands[0].append(deal_card())
         player.hands[1].append(deal_card())
         player.stands.append(False)
 
+        save_player_data()
+
         await interaction.response.send_message("Podzieliłeś rękę na dwie!")
         await update_table(interaction.channel, 0)
+
+
+    @bot.tree.command(name="thanks_for_the_tip", description="Podaruj 1$ graczowi, który zbankrutował.")
+    async def thanks_for_the_tip(interaction: discord.Interaction):
+        player_data = load_player_data()
+        player = player_data.get(str(interaction.user.id))
+
+        if not player:
+            await interaction.response.send_message("nigdy nie grałeś? najpierw zbankrutuj lol")
+            return
+
+        if player['chips'] > 0:
+            await interaction.response.send_message("masz jeszcze kase cwaniaku, tipy tylko dla bankrutów")
+            return
+
+        # Dodanie 1$ do konta gracza
+        player['chips'] += 1
+        await interaction.response.send_message("Ho ho ho! No problem " + player['display_name'] + "!")
+
+        # Zaktualizowanie informacji o graczach i zapisanie do pliku
+        # await update_table(interaction.channel, 0) # INNY ENUM TEN Z STATAMI
+        save_player_data(player_data)
+
+
