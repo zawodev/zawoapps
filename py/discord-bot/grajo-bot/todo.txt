@@ -1,3 +1,5 @@
 -gambling battles
 -system rang (ranking po ilości gamblowania)
 -sklep
+-sterowanie reakcjami
+-bilans dealera (dzis, tydzien, overall)

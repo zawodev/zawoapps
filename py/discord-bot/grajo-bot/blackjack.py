@@ -2,43 +2,36 @@ import random
 import discord
 from discord import app_commands, Embed
 from asyncio import sleep, create_task
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import json
 import os
 
 # Globalne dane gry
 game_active = False
-wait_time = 1
+wait_time = 5
 players = {}
 deck = []
-dealer = None
 
 # Słownik do przechowywania oczekujących napiwków {odbiorca_id: nadawca_id}
 pending_tips = {}
 
 DATA_FILE = "player_data.json"
 
-
-class Player:
-    def __init__(self, user, data=None):
-        self.user = user
-        self.display_name = user.display_name
-        self.chips = data.get('chips', 1000) if data else 1000
-        self.bet = [0]  # Zakład na każdą rękę
-        self.hands = [[]]  # Obsługuje do dwóch rąk
-        self.stands = [False]  # Zapisuje stan każdej ręki
-        self.active_hand = 0
-        self.split_used = False
-
-        # Statystyki
+class Participant:
+    def __init__(self, display_name, start_chips, data=None):
+        self.display_name = display_name
+        self.chips = data.get('chips', start_chips) if data else start_chips
         self.wins = data.get('wins', 0) if data else 0
         self.losses = data.get('losses', 0) if data else 0
         self.pushes = data.get('pushes', 0) if data else 0
         self.blackjacks = data.get('blackjacks', 0) if data else 0
-        self.max_balance = data.get('max_balance', 1000) if data else 1000
+        self.max_balance = data.get('max_balance', 0) if data else 0
         self.biggest_win = data.get('biggest_win', 0) if data else 0
+        self.biggest_loss = data.get('biggest_loss', 0) if data else 0
         self.games_by_day = data.get('games_by_day', {}) if data else {}
+        self.total_won_chips = data.get('total_won_chips', 0) if data else 0
+        self.total_lost_chips = data.get('total_lost_chips', 0) if data else 0
 
     def to_dict(self):
         return {
@@ -50,14 +43,36 @@ class Player:
             'blackjacks': self.blackjacks,
             'max_balance': self.max_balance,
             'biggest_win': self.biggest_win,
-            'games_by_day': self.games_by_day
+            'biggest_loss': self.biggest_loss,
+            'games_by_day': self.games_by_day,
+            'total_won_chips': self.total_won_chips,
+            'total_lost_chips': self.total_lost_chips
         }
 
 
-class Dealer:
-    def __init__(self):
+class Player(Participant):
+    def __init__(self, user, data=None):
+        super().__init__(user.display_name, 1000, data)
+        self.user = user
+        self.bet = [0]  # Zakład na każdą rękę
+        self.hands = [[]]  # Obsługuje do dwóch rąk
+        self.stands = [False]  # Zapisuje stan każdej ręki
+        self.active_hand = 0
+        self.split_used = False
+
+    def to_dict(self):
+        return super().to_dict()
+
+
+class Dealer(Participant):
+    def __init__(self, data=None):
+        super().__init__("Dealer", 0, data)
         self.hand = []
 
+    def to_dict(self):
+        return super().to_dict()  # Dealer nie potrzebuje dodatkowych pól
+
+dealer = Dealer()
 
 def load_player_data():
     """Wczytaj dane graczy z pliku JSON"""
@@ -80,9 +95,12 @@ def save_player_data(player_data=None):
     if player_data is None:
         player_data = {str(player_id): player.to_dict() for player_id, player in players.items()}
 
-    # nadpisz istniejące dane
+    # nadpisz istniejące dane graczy
     for player_id, data in player_data.items():
         existing_data[player_id] = data
+
+    # zapisz dane dealera
+    existing_data['dealer'] = dealer.to_dict()
 
     with open(DATA_FILE, 'w') as f:
         json.dump(existing_data, f, indent=4)
@@ -192,6 +210,18 @@ async def finalize_game(channel):
     dealer_hand_info = f"{' '.join(dealer.hand)} [{dealer_hand_value}]"
     embed.add_field(name="Dealer:", value=dealer_hand_info, inline=False)
 
+    total_dealer_balance = 0
+    total_dealer_winnings = 0
+
+    def update_stats(player, winnings, balance):
+        player.chips += winnings
+        player.total_won_chips += max(balance, 0)
+        player.total_lost_chips += max(-balance, 0)
+        player.max_balance = max(player.max_balance, player.chips)
+        player.biggest_win = max(player.biggest_win, balance)
+        player.biggest_loss = max(player.biggest_loss, -balance)
+        update_games_by_day(player)
+
     for player_id, player in players.items():
         total_winnings = 0
         hand_info = ""
@@ -203,31 +233,39 @@ async def finalize_game(channel):
             if dealer_hand_value == 21 and len(dealer.hand) == 2:
                 result = "dealer blackjack"
                 player.losses += 1
+                dealer.blackjacks += 1
+                dealer.wins += 1
                 winnings = 0
             elif hand_value > 21:
                 result = "busted"
                 player.losses += 1
+                dealer.wins += 1
                 winnings = 0
             elif hand_value == 21 and len(hand) == 2:
                 result = "blackjack"
                 player.blackjacks += 1
                 player.wins += 1
+                dealer.losses += 1
                 winnings = player.bet[i] * 2.5
             elif dealer_hand_value > 21:
                 result = "dealer busted"
                 player.wins += 1
+                dealer.losses += 1
                 winnings = player.bet[i] * 2
             elif hand_value > dealer_hand_value:
                 result = "brawooo wygrałeś"
                 player.wins += 1
+                dealer.losses += 1
                 winnings = player.bet[i] * 2
             elif hand_value < dealer_hand_value:
                 result = "dealer lepszy"
                 player.losses += 1
+                dealer.wins += 1
                 winnings = 0
             else:
                 result = "push"
                 player.pushes += 1
+                dealer.pushes += 1
                 winnings = player.bet[i]
 
             # zapis wyników każdej ręki
@@ -236,15 +274,15 @@ async def finalize_game(channel):
             winnings_txt = f"{'+' if balance > 0 else ''}{balance}"
             hand_info += f"{' '.join(hand)} [{hand_value}] - {result} ({winnings_txt}$)\n"
 
-        # zaktualizowanie liczby żetonów gracza
-        player.chips += total_winnings
         total_balance = total_winnings - sum(player.bet)
         total_winnings_txt = f"{'+' if total_balance > 0 else ''}{total_balance}"
 
-        # Aktualizacja statystyk
-        player.max_balance = max(player.max_balance, player.chips)
-        player.biggest_win = max(player.biggest_win, total_balance)
-        update_games_by_day(player)
+        update_stats(player, total_winnings, total_balance)
+
+        # DEALER
+        total_dealer_winnings -= total_winnings
+        total_dealer_balance -= total_balance
+        # END DEALER
 
         embed.add_field(
             name=f"Gracz: {player.user.display_name}",
@@ -252,11 +290,21 @@ async def finalize_game(channel):
             inline=False
         )
 
+    update_stats(dealer, total_dealer_winnings, total_dealer_balance)
+
+    total_dealer_winnings_txt = f"{'+' if total_dealer_balance > 0 else ''}{total_dealer_balance}"
+    dealer_hand_info = f"{' '.join(dealer.hand)} [{dealer_hand_value}]"
+
+    embed.add_field(
+        name=f"Dealer: {dealer.display_name}",
+        value=f"{dealer.chips - total_dealer_balance}$ -> {dealer.chips}$ ({total_dealer_winnings_txt}$)\n{dealer_hand_info}",
+        inline=False
+    )
+
     save_player_data()  # Zapisz dane po zakończeniu gry
 
     game_active = False
     players.clear()
-    dealer = None
 
     await channel.send(embed=embed)
 
@@ -292,7 +340,8 @@ def setup_blackjack_commands(bot: discord.Client):
 
         if len(players) == 0:
             shuffle_deck()
-            dealer = Dealer()
+            dealer_data = player_data.get('dealer', {})
+            dealer = Dealer(dealer_data)
             dealer.hand = [deal_card(), deal_card()]
             await interaction.channel.send("Gracz: " + interaction.user.display_name + " zaczął grę! Macie: " + str(
                 wait_time) + " sekund na postawienie zakładu!")
@@ -300,12 +349,15 @@ def setup_blackjack_commands(bot: discord.Client):
 
         player.bet[0] = amount
         player.chips -= amount
+        dealer.chips += amount
         player.hands = [[deal_card(), deal_card()]]
         player.stands = [False]
         players[interaction.user.id] = player
 
         save_player_data()
 
+        # napisz ile osób gra i kto dołączył
+        await interaction.channel.send(f"Gracz: {interaction.user.display_name} dołączył do gry! ({len(players)} graczy)")
         await interaction.response.send_message(f"Postawiłeś {amount} żetonów!", ephemeral=True)
 
 
@@ -346,14 +398,13 @@ def setup_blackjack_commands(bot: discord.Client):
 
         if player.split_used and player.active_hand == 0:
             player.active_hand = 1
-            await interaction.response.send_message("Zakończyłeś ruch dla ręki 1, teraz druga ręka", ephemeral=True)
-        else:
-            await interaction.channel.send(f"Zakończyłeś ruch!")
 
         await update_table(interaction.channel, 0)
 
         if all(player.stands):
             await interaction.response.send_message(f"{player.user.display_name} zakończył swoją turę!", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"{player.user.display_name} zakończył ruch dla ręki {player.active_hand}!", ephemeral=True)
 
 
     @bot.tree.command(name="double", description="Podwój zakład i dobierz kartę")
@@ -510,28 +561,40 @@ def setup_blackjack_commands(bot: discord.Client):
         embed = Embed(title="Blackjack Stats", color=0x0000ff)
 
         for player_id, data in player_data.items():
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            week_ago_str = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+
             display_name = data['display_name']
             chips = data['chips']
-            #day_games = data['day_games']
-            #week_games = data['week_games']
-            #total_games = data['total_games']
             wins = data['wins']
             losses = data['losses']
             pushes = data['pushes']
             blackjacks = data['blackjacks']
             max_balance = data['max_balance']
             biggest_win = data['biggest_win']
+            biggest_loss = data['biggest_loss']
+
+            games_by_day = data.get('games_by_day', {})
+            day_games = games_by_day.get(today_str, 0)
+            week_games = sum(games for date, games in games_by_day.items() if week_ago_str <= date <= today_str)
+            total_games = sum(data['games_by_day'].values())
+
+            total_won_chips = data['total_won_chips']
+            total_lost_chips = data['total_lost_chips']
 
             # pole dla każdego gracza
             embed.add_field(
                 name=f"Gracz: {display_name}",
                 value=(
                     f"🪙 Hajs: {chips}$\n"
-                    #f"🎮 Rozegranych (Today/Week/All): {day_games}/{week_games}/{total_games}\n"
-                    #f"🏆 Win/Push/Lose: {wins}/{pushes}/{losses}-{total_games}\n"
+                    f"🎮 Rozegranych (Today/Week/All): {day_games}/{week_games}/{total_games}\n"
+                    f"🏆 Win/Push/Lose: {wins}/{pushes}/{losses}\n"
                     f"🃏 Blackjacks: {blackjacks}\n"
-                    f"🔝 Maksymalny Hajs: {max_balance}\n"
-                    f"💥 Największa Wygrana: {biggest_win}"
+                    f"🔝 Maksymalny Hajs: {max_balance}$\n"
+                    f"💥 Największa Wygrana: {biggest_win}$\n"
+                    f"💸 Największa Przegrana: {biggest_loss}$\n"
+                    f"💰 Łącznie Wygrane: {total_won_chips}$\n"
+                    f"💸 Łącznie Przegrane: {total_lost_chips}$"
                 ),
                 inline=False
             )
