@@ -3,9 +3,14 @@ import discord
 from discord import app_commands, Embed
 from asyncio import sleep, create_task
 from datetime import datetime, timedelta
+import asyncio
 
 import json
 import os
+
+
+bot = None
+
 
 # Globalne dane gry
 game_active = False
@@ -15,6 +20,8 @@ deck = []
 
 # Słownik do przechowywania oczekujących napiwków {odbiorca_id: nadawca_id}
 pending_tips = {}
+
+loan_data = {}
 
 DATA_FILE = "player_data.json"
 
@@ -315,9 +322,40 @@ async def finalize_game(channel):
 
 
 
+async def sprawdz_wszystkie_pozyczki(channel=None):
+    dzisiaj = datetime.datetime.now()
+    do_usuniecia = []  # lista użytkowników do usunięcia z loan_data po przetworzeniu
 
-def setup_blackjack_commands(bot: discord.Client):
+    for user_id, loan_info in loan_data.items():
+        termin_splaty = loan_info['termin_splaty']
+        if dzisiaj > termin_splaty:
+            kwota_pozyczki = loan_info['kwota_pozyczki']
+            timeout_czas = kwota_pozyczki  # czas timeouta równy pożyczonej kwocie w minutach
+
+            # pobierz użytkownika na podstawie user_id
+            user = await bot.fetch_user(user_id)
+            if user:
+                await user.timeout_for(duration=datetime.timedelta(minutes=timeout_czas))
+                await user.send(f"Nie spłaciłeś pożyczki na czas! Zostajesz wyciszony na {timeout_czas} minut.")
+                if channel is not None:
+                    await channel.send(f"{user.mention} nie spłacił pożyczki na czas! Zostaje wyciszony na {timeout_czas} minut.")
+
+            do_usuniecia.append(user_id)  # dodajemy użytkownika do listy do usunięcia
+
+    # usuwanie przeterminowanych pożyczek
+    for user_id in do_usuniecia:
+        del loan_data[user_id]
+
+    return len(do_usuniecia)  # opcjonalnie zwracamy ilość timeoutów
+
+
+
+
+def setup_blackjack_commands(new_bot):
     """Dodaje komendy blackjacka do bota"""
+    global bot
+    bot = new_bot
+    bot.add_listener(sprawdz_wszystkie_pozyczki, name="on_message")
 
     async def place_bet(interaction: discord.Interaction, player: Player, amount: int):
         global players, dealer, deck, wait_time
@@ -697,6 +735,82 @@ def setup_blackjack_commands(bot: discord.Client):
             )
 
         await interaction.response.send_message(embed=embed)
+
+
+    @bot.tree.command(name="loan", description="Weź pożyczkę (maksymalna kwota: 1000$)")
+    async def loan(interaction: discord.Interaction, kwota: int):
+        return
+        user_id = str(interaction.user.id)
+
+        if kwota > 1000:
+            await interaction.response.send_message("Maksymalna kwota pożyczki to 1000$.")
+            return
+
+        if kwota <= 0:
+            await interaction.response.send_message("Nie możesz pożyczyć kwoty mniejszej lub równej 0.")
+            return
+
+        if user_id in loan_data:
+            await interaction.response.send_message("Masz już aktywną pożyczkę! Najpierw ją spłać.")
+            return
+
+        # obliczenie początkowej kwoty do zwrotu (5% początkowe od kwoty pożyczki)
+        kwota_do_zwrotu = int(kwota * 1.05)  # zaokrąglamy w dół
+        termin_splaty =  datetime.datetime.now() + datetime.timedelta(days=3)  # 3 dni na spłatę
+
+        # zapisanie pożyczki w strukturze danych
+        loan_data[user_id] = {
+            'kwota_pozyczki': kwota,
+            'kwota_do_zwrotu': kwota_do_zwrotu,
+            'data_pozyczki': datetime.datetime.now(),
+            'termin_splaty': termin_splaty
+        }
+
+        await interaction.response.send_message(
+            f"Pożyczyłeś {kwota}$! Kwota do zwrotu to {kwota_do_zwrotu}$. Termin spłaty: {termin_splaty}."
+        )
+
+
+    @bot.tree.command(name="pay_loan", description="Spłać pożyczkę")
+    async def pay_loan(interaction: discord.Interaction, kwota: int = None):
+        return
+        user_id = str(interaction.user.id)
+
+        if user_id not in loan_data:
+            await interaction.response.send_message("Nie masz żadnej aktywnej pożyczki.")
+            return
+
+        loan_info = loan_data[user_id]
+        data_pozyczki = loan_info['data_pozyczki']
+        termin_splaty = loan_info['termin_splaty']
+        dzisiaj = datetime.datetime.now()
+
+        # obliczenie ile dni minęło od pożyczenia
+        dni_minelo = (dzisiaj - data_pozyczki).days
+
+        # jeśli pożyczka nie została spłacona na czas, dodaj 5% dziennie (od oryginalnej kwoty pożyczki)
+        if dni_minelo > 0:
+            dodatkowy_koszt = int(loan_info['kwota_pozyczki'] * 0.05 * dni_minelo)
+            loan_info['kwota_do_zwrotu'] = loan_info['kwota_pozyczki'] + dodatkowy_koszt
+
+        # jeśli nie podano kwoty, wyświetl informacje o pożyczce
+        if kwota is None:
+            pozostalo_dni = (termin_splaty - dzisiaj).days
+            await interaction.response.send_message(
+                f"Pożyczyłeś {loan_info['kwota_pozyczki']}$.\n"
+                f"Kwota do zwrotu: {loan_info['kwota_do_zwrotu']}$.\n"
+                f"Pozostało ci {pozostalo_dni} dni na spłatę.\n"
+                f"Termin spłaty: {termin_splaty}."
+            )
+            return
+
+        # jeśli podano kwotę do spłaty
+        if kwota >= loan_info['kwota_do_zwrotu']:
+            del loan_data[user_id]
+            await interaction.response.send_message(f"Spłaciłeś pożyczkę! Kwota {kwota}$ została zwrócona.")
+        else:
+            await interaction.response.send_message(
+                f"Kwota {kwota}$ jest niewystarczająca. Musisz zwrócić {loan_info['kwota_do_zwrotu']}$.")
 
 
     @bot.tree.command(name="help", description="Wyświetl pomoc")
