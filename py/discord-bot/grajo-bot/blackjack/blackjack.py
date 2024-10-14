@@ -23,7 +23,7 @@ pending_tips = {}
 
 loan_data = {}
 
-DATA_FILE = "player_data.json"
+DATA_FILE = "data_storage/data.json"
 
 class Participant:
     def __init__(self, display_name, start_chips, data=None):

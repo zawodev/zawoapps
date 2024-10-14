@@ -8,3 +8,4 @@ uuid
 datetime
 discord-py-slash-command
 pynacl
+discord

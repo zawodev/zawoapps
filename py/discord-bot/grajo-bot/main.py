@@ -1,14 +1,9 @@
 import discord
-import random
-import asyncio
 from discord.ext import commands
-import pytz
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 
 from blackjack import setup_blackjack_commands
-from marek import setup_marek_commands
 
 # ======================== DISCORD BOT ========================
 
