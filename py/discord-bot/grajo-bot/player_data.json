@@ -1,9 +1,9 @@
 {
     "dealer": {
         "display_name": "Dealer",
-        "chips": 2273,
+        "chips": 2172,
         "wins": 19,
-        "losses": 19,
+        "losses": 20,
         "pushes": 2,
         "blackjacks": 1,
         "max_balance": 2986,
@@ -11,16 +11,16 @@
         "biggest_loss": 3200,
         "games_by_day": {
             "2024-10-13": 30,
-            "2024-10-14": 7
+            "2024-10-14": 8
         },
         "total_won_chips": 13740,
-        "total_lost_chips": 12466,
+        "total_lost_chips": 12567,
         "free_bet_by_day": {}
     },
     "336921078138011650": {
         "display_name": "czlowiek - jogurt",
-        "chips": 2552,
-        "wins": 14,
+        "chips": 2652,
+        "wins": 15,
         "losses": 6,
         "pushes": 2,
         "blackjacks": 2,
@@ -29,9 +29,9 @@
         "biggest_loss": 1000,
         "games_by_day": {
             "2024-10-13": 9,
-            "2024-10-14": 13
+            "2024-10-14": 14
         },
-        "total_won_chips": 3013,
+        "total_won_chips": 3113,
         "total_lost_chips": 1461,
         "free_bet_by_day": {
             "2024-10-13": true,
@@ -40,7 +40,7 @@
     },
     "380820820466991116": {
         "display_name": "marek romper extreme",
-        "chips": 0,
+        "chips": 1,
         "wins": 10,
         "losses": 12,
         "pushes": 2,
@@ -52,7 +52,7 @@
             "2024-10-13": 21,
             "2024-10-14": 3
         },
-        "total_won_chips": 9904,
+        "total_won_chips": 9906,
         "total_lost_chips": 10904,
         "free_bet_by_day": {
             "2024-10-13": true

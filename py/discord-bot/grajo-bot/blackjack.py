@@ -94,15 +94,15 @@ def save_player_data(player_data=None):
 
     existing_data = load_player_data()
 
+    # zapisz dane dealera
+    existing_data['dealer'] = dealer.to_dict()
+
     if player_data is None:
         player_data = {str(player_id): player.to_dict() for player_id, player in players.items()}
 
     # nadpisz istniejące dane graczy
     for player_id, data in player_data.items():
         existing_data[player_id] = data
-
-    # zapisz dane dealera
-    existing_data['dealer'] = dealer.to_dict()
 
     with open(DATA_FILE, 'w') as f:
         json.dump(existing_data, f, indent=4)
@@ -561,7 +561,7 @@ def setup_blackjack_commands(bot: discord.Client):
 
         player_data = load_player_data()
         target_player_data = player_data.get(str(interaction.user.id))
-        dealer_data = player_data.get('dealer', {})
+
 
         if target_player_data is None:
             target_player_data = Player(interaction.user).to_dict()
@@ -573,8 +573,12 @@ def setup_blackjack_commands(bot: discord.Client):
 
             target_player_data['chips'] += 1
             target_player_data['total_won_chips'] += 1
+
+            dealer_data = player_data.get('dealer', {})
             dealer_data['chips'] -= 1
             dealer_data['total_lost_chips'] += 1
+            player_data['dealer'] = dealer_data
+
             await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!")
         else:  # Odbieranie napiwku od innego gracza
             tipper_data = player_data.get(str(tipper.id))
@@ -604,7 +608,7 @@ def setup_blackjack_commands(bot: discord.Client):
             player_data[str(tipper.id)] = tipper_data
 
         player_data[str(interaction.user.id)] = target_player_data
-        player_data['dealer'] = dealer_data
+
         # Zapisanie danych graczy
         save_player_data(player_data)
 
