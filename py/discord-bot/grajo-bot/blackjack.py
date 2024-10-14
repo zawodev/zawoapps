@@ -68,7 +68,7 @@ class Player(Participant):
 
 class Dealer(Participant):
     def __init__(self, data=None):
-        super().__init__("Dealer", 0, data)
+        super().__init__("Dealer", 1000, data)
         self.hand = []
 
     def to_dict(self):
@@ -251,7 +251,7 @@ async def finalize_game(channel):
                 player.blackjacks += 1
                 player.wins += 1
                 dealer.losses += 1
-                winnings = player.bet[i] * 2.5
+                winnings = int(player.bet[i] * 2.5)
             elif dealer_hand_value > 21:
                 result = "dealer busted"
                 player.wins += 1
@@ -274,7 +274,7 @@ async def finalize_game(channel):
                 winnings = player.bet[i]
 
             # zapis wyników każdej ręki
-            total_winnings += int(winnings)
+            total_winnings += winnings
             balance = winnings - player.bet[i]
             winnings_txt = f"{'+' if balance > 0 else ''}{balance}"
             hand_info += f"{' '.join(hand)} [{hand_value}] - {result} ({winnings_txt}$)\n"
