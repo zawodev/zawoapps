@@ -568,14 +568,14 @@ def setup_blackjack_commands(bot: discord.Client):
 
         if tipper is None:  # Odbieranie napiwku od dealera (gdy gracz zbankrutował)
             if target_player_data['chips'] > 0:
-                await interaction.response.send_message("Masz jeszcze kasę cwaniaku, tipy tylko dla bankrutów!", ephemeral=True)
+                await interaction.response.send_message("Masz jeszcze kasę cwaniaku, tipy tylko dla bankrutów!")
                 return
 
             target_player_data['chips'] += 1
             target_player_data['total_won_chips'] += 1
             dealer_data['chips'] -= 1
             dealer_data['total_lost_chips'] += 1
-            await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!", ephemeral=True)
+            await interaction.response.send_message( f"Ho ho ho! No problem {interaction.user.display_name}!")
         else:  # Odbieranie napiwku od innego gracza
             tipper_data = player_data.get(str(tipper.id))
             pending_tip_target_id = pending_tips.get(str(tipper.id))
@@ -589,7 +589,7 @@ def setup_blackjack_commands(bot: discord.Client):
                 return
 
             if tipper_data['chips'] < 1:
-                await interaction.response.send_message(f"{tipper.display_name} jest zbankrutowany i nie może dać napiwku!", ephemeral=True)
+                await interaction.response.send_message(f"{tipper.display_name} jest zbankrutowany i nie może dać napiwku!")
                 return
 
             # Przeniesienie 1$ z konta tippera do odbiorcy
@@ -597,26 +597,27 @@ def setup_blackjack_commands(bot: discord.Client):
             tipper_data['total_lost_chips'] += 1
             target_player_data['chips'] += 1
             target_player_data['total_won_chips'] += 1
-            await interaction.response.send_message(f"{interaction.user.display_name} odebrał napiwek od {tipper.display_name}!", ephemeral=True)
+            await interaction.response.send_message(f"{interaction.user.display_name} odebrał napiwek od {tipper.display_name}!")
 
             # Usunięcie zakończonego napiwku z pending_tips
             del pending_tips[str(tipper.id)]
             player_data[str(tipper.id)] = tipper_data
 
         player_data[str(interaction.user.id)] = target_player_data
+        player_data['dealer'] = dealer_data
         # Zapisanie danych graczy
         save_player_data(player_data)
 
-    @bot.tree.command(name="stats", description="Wyświetl statystyki wszystkich graczy")
-    async def stats(interaction: discord.Interaction):
+
+    @bot.tree.command(name="stats", description="Wyświetl statystyki gracza lub wszystkich graczy")
+    async def stats(interaction: discord.Interaction, user: discord.User = None):
         player_data = load_player_data()
         embed = Embed(title="Blackjack Stats", color=0x0000ff)
 
-        for player_id, data in player_data.items():
+        def add_player_stats_to_embed(embed: Embed, display_name: str, data: dict):
             today_str = datetime.now().strftime('%Y-%m-%d')
             week_ago_str = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
 
-            display_name = data['display_name']
             chips = data['chips']
             wins = data['wins']
             losses = data['losses']
@@ -629,12 +630,12 @@ def setup_blackjack_commands(bot: discord.Client):
             games_by_day = data.get('games_by_day', {})
             day_games = games_by_day.get(today_str, 0)
             week_games = sum(games for date, games in games_by_day.items() if week_ago_str <= date <= today_str)
-            total_games = sum(data['games_by_day'].values())
+            total_games = sum(games_by_day.values())
 
             total_won_chips = data['total_won_chips']
             total_lost_chips = data['total_lost_chips']
 
-            # pole dla każdego gracza
+            # dodanie statystyk do embed
             embed.add_field(
                 name=f"Gracz: {display_name}",
                 value=(
@@ -650,6 +651,26 @@ def setup_blackjack_commands(bot: discord.Client):
                 ),
                 inline=False
             )
+
+        # sprawdzenie, czy podano usera
+        if user:
+            if user == bot.user:  # statystyki dealera
+                dealer_data = player_data.get('dealer', None)  # zakładam, że dealer ma jakieś dane
+                if dealer_data:
+                    add_player_stats_to_embed(embed, "Dealer", dealer_data)
+                else:
+                    await interaction.response.send_message(f"Nie znaleziono statystyk dla dealera.")
+                    return
+            else:  # statystyki konkretnego gracza
+                data = player_data.get(str(user.id), None)
+                if data:
+                    add_player_stats_to_embed(embed, user.display_name, data)
+                else:
+                    await interaction.response.send_message(f"Nie znaleziono statystyk dla {user.display_name}.")
+                    return
+        else:  # statystyki wszystkich graczy
+            for player_id, data in player_data.items():
+                add_player_stats_to_embed(embed, data['display_name'], data)
 
         await interaction.response.send_message(embed=embed)
 

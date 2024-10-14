@@ -1,37 +1,38 @@
 {
     "dealer": {
         "display_name": "Dealer",
-        "chips": 1574,
-        "wins": 2,
-        "losses": 2,
-        "pushes": 0,
+        "chips": 2273,
+        "wins": 19,
+        "losses": 19,
+        "pushes": 2,
         "blackjacks": 1,
-        "max_balance": 20,
-        "biggest_win": 50,
-        "biggest_loss": 751,
+        "max_balance": 2986,
+        "biggest_win": 3200,
+        "biggest_loss": 3200,
         "games_by_day": {
-            "2024-10-14": 4
+            "2024-10-13": 30,
+            "2024-10-14": 7
         },
-        "total_won_chips": 70,
-        "total_lost_chips": 1552,
+        "total_won_chips": 13740,
+        "total_lost_chips": 12466,
         "free_bet_by_day": {}
     },
     "336921078138011650": {
         "display_name": "czlowiek - jogurt",
-        "chips": 3251,
-        "wins": 13,
-        "losses": 4,
+        "chips": 2552,
+        "wins": 14,
+        "losses": 6,
         "pushes": 2,
-        "blackjacks": 4,
+        "blackjacks": 2,
         "max_balance": 3251,
         "biggest_win": 751,
-        "biggest_loss": 200,
+        "biggest_loss": 1000,
         "games_by_day": {
             "2024-10-13": 9,
-            "2024-10-14": 10
+            "2024-10-14": 13
         },
-        "total_won_chips": 2782,
-        "total_lost_chips": 261,
+        "total_won_chips": 3013,
+        "total_lost_chips": 1461,
         "free_bet_by_day": {
             "2024-10-13": true,
             "2024-10-14": true
@@ -51,11 +52,10 @@
             "2024-10-13": 21,
             "2024-10-14": 3
         },
-        "total_won_chips": 9903,
-        "total_lost_chips": 10903,
+        "total_won_chips": 9904,
+        "total_lost_chips": 10904,
         "free_bet_by_day": {
-            "2024-10-13": true,
-            "2024-10-14": true
+            "2024-10-13": true
         }
     },
     "350207555747840001": {
