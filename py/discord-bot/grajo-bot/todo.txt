@@ -1,3 +1,6 @@
+-statystyka od ilosci danych tipow, ilosci otrzymanych tipow
+-statystyka ilosci otrzymanych kredytow, łacznej kwocie kredytow
+
 -gambling battles
 -system rang (ranking po ilości gamblowania)
 -sklep
