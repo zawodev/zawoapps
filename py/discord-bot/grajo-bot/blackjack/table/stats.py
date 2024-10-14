@@ -1,7 +1,7 @@
 class Stats:
     def __init__(self):
-        # Display name
-        self.display_name = "Player"
+        # Name
+        self.name = "Player"
 
         # W/P/L
         self.wins = 0
@@ -23,6 +23,7 @@ class Stats:
         self.hits = 0
 
         # Money
+        self.chips = 1000
         self.total_won_chips = 0
         self.total_lost_chips = 0
         self.biggest_win = 0
@@ -41,7 +42,7 @@ class Stats:
 
     def to_dict(self):
         return {
-            "display_name": self.display_name,
+            "name": self.name,
             "wins": self.wins,
             "pushes": self.pushes,
             "losses": self.losses,

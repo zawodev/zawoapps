@@ -3,7 +3,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 
-from blackjack import setup_blackjack_commands
+from blackjack.blackjack import setup_blackjack_commands
 
 # ======================== DISCORD BOT ========================
 
@@ -19,7 +19,7 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 async def on_ready():
 
     # ustaw status bota jako niewidoczny
-    await bot.change_presence(status=discord.Status.invisible)
+    # await bot.change_presence(status=discord.Status.invisible)
 
     print(f'bot zalogowany jako {bot.user}')
     try:

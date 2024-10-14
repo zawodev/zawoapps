@@ -23,7 +23,7 @@ pending_tips = {}
 
 loan_data = {}
 
-DATA_FILE = "data_storage/data.json"
+DATA_FILE = "temp.json"
 
 class Participant:
     def __init__(self, display_name, start_chips, data=None):
@@ -242,7 +242,13 @@ async def finalize_game(channel):
             hand_value = calculate_hand_value(hand)
             winnings = 0
 
-            if dealer_hand_value == 21 and len(dealer.hand) == 2:
+
+            if dealer_hand_value == 21 and len(dealer.hand) == 2 and hand_value == 21 and len(hand) == 2:
+                result = "blackjack push (very rare)"
+                player.pushes += 1
+                dealer.pushes += 1
+                winnings = player.bet[i]
+            elif dealer_hand_value == 21 and len(dealer.hand) == 2:
                 result = "dealer blackjack"
                 player.losses += 1
                 dealer.blackjacks += 1
@@ -355,7 +361,7 @@ def setup_blackjack_commands(new_bot):
     """Dodaje komendy blackjacka do bota"""
     global bot
     bot = new_bot
-    bot.add_listener(sprawdz_wszystkie_pozyczki, name="on_message")
+    # bot.add_listener(sprawdz_wszystkie_pozyczki, name="on_message")
 
     async def place_bet(interaction: discord.Interaction, player: Player, amount: int):
         global players, dealer, deck, wait_time
