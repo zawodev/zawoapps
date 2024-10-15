@@ -1,7 +1,7 @@
 from blackjack.table.stats import Stats
 
 class Player:
-    def __init__(self, name, bankroll):
+    def __init__(self, player_data):
         self.user_id = None
 
         self.bets = [0]  # Zakład na każdą rękę
@@ -14,6 +14,12 @@ class Player:
     def __str__(self):
         return f'{self.stats.name} has {self.stats.chips}$'
 
+    def stats_to_dict(self):
+        return self.stats.to_dict()
+
+
+
+
     def transfer_chips(self, other, amount):
         self.stats.chips -= amount
         other.stats.chips += amount
@@ -22,6 +28,8 @@ class Player:
         if not self.hands[self.active_hand]:
             print("Hand is empty")
         self.hands[self.active_hand] = [card1, card2]
+
+
 
     def bet(self, amount):
         if self.bets[self.active_hand] > 0:
@@ -46,8 +54,10 @@ class Player:
         self.bets[1] = self.bets[0]
         self.split_used = True
 
-    def double(self):
+    def double(self, card):
         self.bets[self.active_hand] *= 2
+        self.hit(card)
+        self.stand()
 
 
 

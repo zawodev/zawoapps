@@ -1,5 +1,5 @@
 class Stats:
-    def __init__(self):
+    def __init__(self, player_data=None):
         # Name
         self.name = "Player"
 
