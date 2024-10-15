@@ -1,21 +1,21 @@
 from blackjack.table.stats import Stats
+from blackjack.table.profile import Profile
 
-class Player:
-    def __init__(self, player_data):
-        self.user_id = None
+class Player(Profile):
+    def __init__(self, player_id):
+        super().__init__('players', player_id)
 
+        # temporary, mid game
         self.bets = [0]  # Zakład na każdą rękę
         self.hands = [[]]  # Obsługuje do dwóch rąk
         self.active_hand = 0
         self.split_used = False
 
-        self.stats = Stats()
+    def save(self):
+        self.stats.save('players', self.profile_id)
 
     def __str__(self):
         return f'{self.stats.name} has {self.stats.chips}$'
-
-    def stats_to_dict(self):
-        return self.stats.to_dict()
 
 
 

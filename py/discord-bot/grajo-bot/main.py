@@ -3,7 +3,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 
-from blackjack.blackjack import setup_blackjack_commands
+from blackjack.old_blackjack import setup_blackjack_commands
 
 # ======================== DISCORD BOT ========================
 
@@ -27,6 +27,8 @@ async def on_ready():
         print(f'Synced {len(synced)} slash commands.')
     except Exception as e:
         print(e)
+
+    # await setup_blackjack_game(bot) # <------------------------------------ THIS NEW
 
     # await channel.send("bot is online")
 
