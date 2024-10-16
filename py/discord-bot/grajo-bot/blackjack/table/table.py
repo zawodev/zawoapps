@@ -1,14 +1,20 @@
 from blackjack.data_storage.json_data_storage import save_data, load_data
 from blackjack.table.hand import Hand
 from blackjack.table.dealer import Dealer
+from blackjack.table.deck import Deck
+from blackjack.table.player import Player
 
 class Table:
-    def __init__(self, dealer: Dealer, channel, n_decks=1, min_bet=10, max_bet=1000):
-        self.n_decks = n_decks
+    def __init__(self, dealer: Dealer, channel, decks_in_deck=1, min_bet=10, max_bet=1000):
+        self.decks_in_deck = decks_in_deck
         self.min_bet = min_bet
         self.max_bet = max_bet
-        self.players = []
+
+        self.players = [] # jak pokazac ze to tablica obiektow klasy Player? dla interpretera python
         self.dealer = dealer
+
+        self.deck = Deck(self.decks_in_deck)
+
         self.channel = channel
 
     def add_player(self, player):
@@ -26,8 +32,10 @@ class Table:
 
     def deal_initial_hands(self):
         for player in self.players:
-            player.hand = Hand(self.shoe.draw(), self.shoe.draw())
-        self.dealer.hand = Hand(self.shoe.draw(), self.shoe.draw())
+            player.hand = Hand()
+            player.deal_hand(self.deck.draw(), self.deck.draw())
+        self.dealer.hand = Hand()
+        self.dealer.hand.deal(self.deck.draw(), self.deck.draw())
 
     def play_round(self):
         self.place_bets()
@@ -38,8 +46,6 @@ class Table:
         for player in self.players:
             player.resolve(self.dealer)
 
-    def save_player_stats(self):
-        players = {}
+    def save_players(self):
         for player in self.players:
-            players[str(player.user_id)] = player.stats.to_dict()
-        save_data('players', players)
+            player.save()

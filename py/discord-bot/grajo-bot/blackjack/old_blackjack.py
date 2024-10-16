@@ -59,7 +59,7 @@ class Participant:
         }
 
 
-class Player(Participant):
+class Player2(Participant):
     def __init__(self, user, data=None):
         super().__init__(user.display_name, 1000, data)
         self.user = user
@@ -73,7 +73,7 @@ class Player(Participant):
         return super().to_dict()
 
 
-class Dealer(Participant):
+class Dealer2(Participant):
     def __init__(self, data=None):
         super().__init__("Dealer", 1000, data)
         self.hand = []
@@ -81,7 +81,7 @@ class Dealer(Participant):
     def to_dict(self):
         return super().to_dict()  # Dealer nie potrzebuje dodatkowych pól
 
-dealer = Dealer()
+dealer = Dealer2()
 
 def load_player_data():
     """Wczytaj dane graczy z pliku JSON"""
@@ -363,14 +363,14 @@ def setup_blackjack_commands(new_bot):
     bot = new_bot
     # bot.add_listener(sprawdz_wszystkie_pozyczki, name="on_message")
 
-    async def place_bet(interaction: discord.Interaction, player: Player, amount: int):
+    async def place_bet(interaction: discord.Interaction, player: Player2, amount: int):
         global players, dealer, deck, wait_time
 
         if len(players) == 0:
             shuffle_deck()
             player_data = load_player_data()
             dealer_data = player_data.get('dealer', {})
-            dealer = Dealer(dealer_data)
+            dealer = Dealer2(dealer_data)
             dealer.hand = [deal_card(), deal_card()]
             await interaction.channel.send(interaction.user.display_name + " rozpoczął grę! Macie: " + str(
                 wait_time) + " sekund na postawienie zakładu!")
@@ -406,7 +406,7 @@ def setup_blackjack_commands(new_bot):
             await interaction.response.send_message("Jesteś już w grze!", ephemeral=True)
             return
 
-        player_instance = Player(interaction.user, player)
+        player_instance = Player2(interaction.user, player)
         player_instance.free_bet_by_day[today] = True
         player_instance.total_won_chips += 50
 
@@ -437,7 +437,7 @@ def setup_blackjack_commands(new_bot):
             await interaction.response.send_message("Nie możesz postawić mniej niż 1 żeton!", ephemeral=True)
             return
 
-        player_instance = Player(interaction.user, player_data.get(str(interaction.user.id), {}))
+        player_instance = Player2(interaction.user, player_data.get(str(interaction.user.id), {}))
 
         if amount > player_instance.chips:
             await interaction.response.send_message("Nie masz wystarczająco żetonów!", ephemeral=True)
@@ -577,7 +577,7 @@ def setup_blackjack_commands(new_bot):
         tipper_data = player_data.get(str(interaction.user.id))
 
         if tipper_data is None:
-            tipper_data = Player(interaction.user).to_dict()
+            tipper_data = Player2(interaction.user).to_dict()
             player_data[str(interaction.user.id)] = tipper_data
 
         if tipper_data['chips'] < 1:
@@ -586,7 +586,7 @@ def setup_blackjack_commands(new_bot):
 
         target_player_data = player_data.get(str(target_player.id))
         if target_player_data is None:
-            target_player_data = Player(target_player).to_dict()
+            target_player_data = Player2(target_player).to_dict()
             player_data[str(target_player.id)] = target_player_data
 
         pending_tips[str(interaction.user.id)] = str(target_player.id)
@@ -608,7 +608,7 @@ def setup_blackjack_commands(new_bot):
 
 
         if target_player_data is None:
-            target_player_data = Player(interaction.user).to_dict()
+            target_player_data = Player2(interaction.user).to_dict()
 
         if tipper is None:  # Odbieranie napiwku od dealera (gdy gracz zbankrutował)
             if target_player_data['chips'] > 0:
