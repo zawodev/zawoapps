@@ -8,5 +8,14 @@ class Profile:
 
         self.stats = Stats(load_profile_data(self.category, self.profile_id))
 
+    def __str__(self):
+        return f'{self.stats.name} has {self.stats.chips}$'
+
     def save(self):
         save_profile_data(self.category, self.profile_id, self.stats.to_dict())
+
+    def withdraw(self, amount):
+        if self.stats.chips >= amount:
+            self.stats.chips -= amount
+            return True
+        return False

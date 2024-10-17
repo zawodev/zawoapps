@@ -10,7 +10,7 @@ class Table:
         self.min_bet = min_bet
         self.max_bet = max_bet
 
-        self.players = [] # jak pokazac ze to tablica obiektow klasy Player? dla interpretera python
+        self.players = []
         self.dealer = dealer
 
         self.deck = Deck(self.decks_in_deck)
@@ -27,10 +27,8 @@ class Table:
         return player in self.players
 
     def bet(self, player, amount):
-        if player.has_chips(amount):
+        if player in self.players:
             player.bet(amount)
-        else:
-            print("Not enough chips")
 
 
 

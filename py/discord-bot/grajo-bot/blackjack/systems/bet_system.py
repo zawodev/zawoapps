@@ -42,14 +42,13 @@ async def free_bet(interaction: discord.Interaction, bjg: BlackJackGame):
     if table is None:
         return
 
-    table.add_player(player)
-
     today = datetime.now().strftime('%Y-%m-%d')
     if today in player.stats.freebet_dates:
         await interaction.response.send_message("Już odebrałeś swoj darmowy zakład dzisiaj", ephemeral=True)
         return
-
     player.stats.freebet_dates.append(today)
+
+    table.add_player(player)
     table.dealer.transfer_chips(player, 50)
     table.bet(player, 50)
 

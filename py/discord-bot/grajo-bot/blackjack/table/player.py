@@ -1,21 +1,23 @@
 from blackjack.table.stats import Stats
 from blackjack.table.profile import Profile
+from blackjack.table.hand import Hand
 
-class Player(Profile):
-    def __init__(self, player_id):
-        super().__init__('players', player_id)
+class Player:
+    def __init__(self, player_profile: Profile):
+        # self.name = name
+        self.player_profile = player_profile
 
-        # temporary, mid game
-        self.bets = []  # Zakład na każdą rękę
-        self.hands = [[]]  # Obsługuje do dwóch rąk
+        # temporary, mid game class
+        self.hands = [Hand()]  # Karty na każdą rękę
         self.active_hand = 0
         self.split_used = False
 
     def save(self):
-        self.stats.save('players', self.profile_id)
+        self.player_profile.save()
 
     def __str__(self):
-        return f'{self.stats.name} has {self.stats.chips}$'
+        # print his hands and bets
+        pass
 
 
 
@@ -31,12 +33,15 @@ class Player(Profile):
             print("Hand is empty")
         self.hands[self.active_hand] = [card1, card2]
 
-
-
     def bet(self, amount):
-        if self.bets[self.active_hand] > 0:
-            print("Bet already placed")
-        self.bets[self.active_hand] = amount
+        if self.has_chips(amount):
+            if self.bets[self.active_hand] > 0:
+                print("Bet already placed")
+            self.bets[self.active_hand] = amount
+            self.stats.chips -= amount
+
+
+
 
     def stand(self):
         self.active_hand += 1

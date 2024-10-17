@@ -1,6 +1,7 @@
 from blackjack.table.table import Table
 from blackjack.table.player import Player
 from blackjack.table.dealer import Dealer
+from blackjack.table.profile import Profile
 
 import random
 
@@ -19,8 +20,9 @@ class BlackJackGame:
 
         create_empty_dealers(['Marek', 'Jarek', 'Darek', 'Fifonż', 'Wojtek', 'Piotrek', 'Kuba'])
 
-        self.dealers = [Dealer(dealer_key) for dealer_key in load_data('dealers').keys()]
-        self.players = [Player(player_key) for player_key in load_data('players').keys()]
+        self.dealer_profiles = [Profile('dealers', dealer_key) for dealer_key in load_data('dealers').keys()]
+        self.player_profiles = [Profile('players', player_key) for player_key in load_data('players').keys()]
+
         self.tables = []
         self.create_tables() # możliwe że to musi być w setup bo nie wiem czy sie podmieni???
 
