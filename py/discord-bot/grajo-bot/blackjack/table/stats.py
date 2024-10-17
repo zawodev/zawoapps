@@ -37,8 +37,8 @@ class Stats:
         self.biggest_loan_paid = profile_data.get('biggest_loan_paid', 0)
 
         # By day
-        self.total_games_by_day = profile_data.get('total_games_by_day', {})
-        self.free_bet_by_day = profile_data.get('free_bet_by_day', {})
+        self.total_games_dates = profile_data.get('total_games_dates', {})
+        self.freebet_dates = profile_data.get('freebet_dates', {})
 
 
     def to_dict(self):
@@ -64,6 +64,6 @@ class Stats:
             "loans_paid": self.loans_paid,
             "biggest_loan": self.biggest_loan,
             "biggest_loan_paid": self.biggest_loan_paid,
-            "total_games_by_day": self.total_games_by_day,
-            "free_bet_by_day": self.free_bet_by_day,
+            "total_games_dates": self.total_games_dates,
+            "freebet_dates": self.freebet_dates,
         }

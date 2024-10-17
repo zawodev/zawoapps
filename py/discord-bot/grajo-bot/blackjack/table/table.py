@@ -23,8 +23,16 @@ class Table:
     def remove_player(self, player):
         self.players.remove(player)
 
-    def has_player(self, player_id):
-        return any([player.user_id == player_id for player in self.players])
+    def has_player(self, player):
+        return player in self.players
+
+    def bet(self, player, amount):
+        if player.has_chips(amount):
+            player.bet(amount)
+        else:
+            print("Not enough chips")
+
+
 
     def place_bets(self):
         for player in self.players:

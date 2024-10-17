@@ -6,7 +6,7 @@ class Player(Profile):
         super().__init__('players', player_id)
 
         # temporary, mid game
-        self.bets = [0]  # Zakład na każdą rękę
+        self.bets = []  # Zakład na każdą rękę
         self.hands = [[]]  # Obsługuje do dwóch rąk
         self.active_hand = 0
         self.split_used = False
@@ -19,6 +19,8 @@ class Player(Profile):
 
 
 
+    def has_chips(self, amount):
+        return self.stats.chips >= amount
 
     def transfer_chips(self, other, amount):
         self.stats.chips -= amount

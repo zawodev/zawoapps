@@ -68,6 +68,7 @@ class Player2(Participant):
         self.stands = [False]  # Zapisuje stan każdej ręki
         self.active_hand = 0
         self.split_used = False
+        self.forfeited = False
 
     def to_dict(self):
         return super().to_dict()
@@ -242,8 +243,10 @@ async def finalize_game(channel):
             hand_value = calculate_hand_value(hand)
             winnings = 0
 
-
-            if dealer_hand_value == 21 and len(dealer.hand) == 2 and hand_value == 21 and len(hand) == 2:
+            if player.forfeited:
+                result = "forfeited"
+                winnings = player.bet[i] // 2
+            elif dealer_hand_value == 21 and len(dealer.hand) == 2 and hand_value == 21 and len(hand) == 2:
                 result = "blackjack push (very rare)"
                 player.pushes += 1
                 dealer.pushes += 1
@@ -362,6 +365,35 @@ def setup_blackjack_commands(new_bot):
     global bot
     bot = new_bot
     # bot.add_listener(sprawdz_wszystkie_pozyczki, name="on_message")
+
+    @bot.tree.command(name="forfeit", description="Zrezygnuj z gry")
+    async def forfeit(interaction: discord.Interaction):
+        global game_active, players, dealer
+
+        if not game_active:
+            await interaction.response.send_message("Nie ma aktywnej gry!", ephemeral=True)
+            return
+
+        player = players.get(interaction.user.id)
+        if not player:
+            await interaction.response.send_message("Nie jesteś w grze!", ephemeral=True)
+            return
+
+        player.stands[0] = True
+        if player.split_used:
+            player.stands[1] = True
+
+        player.forfeited = True
+
+        save_player_data()
+
+        await interaction.response.send_message("Zrezygnowałeś z gry!", ephemeral=True)
+
+        await update_table(interaction.channel, 0)
+
+
+        # Zwróć połowę wartości zakładu w żetonach graczowi i zakończ gre
+
 
     async def place_bet(interaction: discord.Interaction, player: Player2, amount: int):
         global players, dealer, deck, wait_time

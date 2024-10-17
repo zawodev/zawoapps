@@ -1,9 +1,14 @@
 import discord
 from blackjack.game.blackjack_game import BlackJackGame
 
-import blackjack.systems.join_table_system as jts
+from blackjack.systems import (bet_system as bs,
+                               join_table_system as jts)
 
 def slash_commands_setup(bjg: BlackJackGame):
+
+    @bjg.bot.tree.command(name="forfeit", description="Zrezygnuj z gry")
+    async def forfeit(interaction: discord.Interaction):
+        pass
 
     @bjg.bot.tree.command(name="join table", description="Dołącz do stołu na danym kanale")
     async def join_table(interaction: discord.Interaction):
@@ -15,11 +20,11 @@ def slash_commands_setup(bjg: BlackJackGame):
 
     @bjg.bot.tree.command(name="freebet", description="Jeden dziennie darmowy zakład za 50$")
     async def freebet(interaction: discord.Interaction):
-        pass
+        await bs.free_bet(interaction, bjg)
 
     @bjg.bot.tree.command(name="bet", description="Zakład na grę")
     async def bet(interaction: discord.Interaction, amount: int):
-        pass
+        await bs.bet(interaction, bjg, amount)
 
     @bjg.bot.tree.command(name="hit", description="Dobierz kartę")
     async def hit(interaction: discord.Interaction):
