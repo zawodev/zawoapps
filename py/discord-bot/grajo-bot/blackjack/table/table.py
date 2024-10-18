@@ -1,8 +1,11 @@
 from blackjack.data_storage.json_data_storage import save_data, load_data
+from blackjack.old_blackjack import game_active
 from blackjack.table.hand import Hand
 from blackjack.table.dealer import Dealer
 from blackjack.table.deck import Deck
 from blackjack.table.player import Player
+from blackjack.table.profile import Profile
+
 
 class Table:
     def __init__(self, dealer: Dealer, channel, decks_in_deck=1, min_bet=10, max_bet=1000):
@@ -16,21 +19,74 @@ class Table:
         self.deck = Deck(self.decks_in_deck)
 
         self.channel = channel
+        self.game_active = False
 
-    def add_player(self, player):
+# ------------- GAME ACTIONS -------------
+
+    def get_or_create_player(self, player_profile: Profile):
+        for player in self.players:
+            if player.player_profile.profile_id == player_profile.profile_id:
+                return player
+        player = Player(player_profile, self)
         self.players.append(player)
+        return player
 
-    def remove_player(self, player):
+    def remove_player(self, player: Player):
         self.players.remove(player)
 
-    def has_player(self, player):
+    def has_player(self, player: Player):
         return player in self.players
 
-    def bet(self, player, amount):
+# ------------- GAME ACTIONS -------------
+
+    def game_active_or_notify(self, interaction):
+        if self.game_active:
+            interaction.response.send_message("Gra już trwa!", ephemeral=True)
+            return True
+        return False
+
+# ------------- GAME ACTIONS -------------
+
+    def bet(self, player: Player, amount: int):
         if player in self.players:
             player.bet(amount)
+            player.profile.transfer_chips(self.dealer.profile, amount)
+        else:
+            print("Player not in table")
 
+    def hit(self, player: Player):
+        if player in self.players:
+            player.hit(self.deck.draw())
+        else:
+            print("Player not in table")
 
+    def stand(self, player: Player):
+        if player in self.players:
+            player.stand()
+        else:
+            print("Player not in table")
+
+    def double(self, player: Player):
+        if player in self.players:
+            player.double(self.deck.draw())
+            player.profile.transfer_chips(self.dealer.profile, player.get_current_hand().bet)
+        else:
+            print("Player not in table")
+
+    def split(self, player: Player):
+        if player in self.players:
+            player.split()
+            player.profile.transfer_chips(self.dealer.profile, player.get_current_hand().bet)
+        else:
+            print("Player not in table")
+
+    def forfeit(self, player: Player):
+        if player in self.players:
+            player.forfeit()
+        else:
+            print("Player not in table")
+
+# ------------- GAME ACTIONS -------------
 
     def place_bets(self):
         for player in self.players:

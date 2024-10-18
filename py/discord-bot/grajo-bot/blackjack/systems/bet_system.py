@@ -1,54 +1,44 @@
 import discord
 
 from datetime import datetime
-
 from blackjack.game.blackjack_game import BlackJackGame
-from blackjack.game.game_checks import get_table_or_notify, get_or_create_player
+from blackjack.old_blackjack import players
+from blackjack.table.player import Player
 
-async def place_bet(interaction: discord.Interaction, bjg: BlackJackGame, amount: int):
-    table = await get_table_or_notify(interaction, bjg)
 
-    if table is None:
+async def bet(interaction: discord.Interaction, player: Player, amount: int):
+    if player.bet_used:
+        await interaction.response.send_message("Już postawiłeś zakład", ephemeral=True)
         return
 
-    player = await get_or_create_player(bjg, interaction.user.id)
-
-    if player.has_chips(amount):
-        player.place_bet(amount)
-        await interaction.response.send_message(f"Postawiłeś {amount}$", ephemeral=True)
-    else:
-        await interaction.response.send_message(
-            f"Nie masz tyle żetonów, twój stan konta to {player.stats.chips}$",
-            ephemeral=True
-        )
-
-
-
-
-
-
-async def bet(interaction: discord.Interaction, bjg: BlackJackGame, amount: int):
-    player = await get_or_create_player(bjg, interaction.user.id)
-    table = await get_table_or_notify(interaction, bjg)
-    if table is None:
+    if player.table.game_active:
+        await interaction.response.send_message("Gra już trwa!", ephemeral=True)
         return
 
-    table.add_player(player)
-    table.bet(player, amount)
-
-async def free_bet(interaction: discord.Interaction, bjg: BlackJackGame):
-    player = await get_or_create_player(bjg, interaction.user.id)
-    table = await get_table_or_notify(interaction, bjg)
-    if table is None:
+    if amount < player.table.min_bet:
+        await interaction.response.send_message(f"Minimalny zakład to {player.table.min_bet}$", ephemeral=True)
         return
 
+    if amount > player.table.max_bet:
+        await interaction.response.send_message(f"Maxymalny zakład to {player.table.max_bet}$", ephemeral=True)
+        return
+
+    if not player.profile.has_chips(amount):
+        await interaction.response.send_message("Nie masz tyle żetonów", ephemeral=True)
+        return
+
+    player.table.bet(player, amount)
+
+    await interaction.response.send_message(f"Postawiłeś {amount}$", ephemeral=True)
+
+
+async def free_bet(interaction: discord.Interaction, player: Player):
     today = datetime.now().strftime('%Y-%m-%d')
-    if today in player.stats.freebet_dates:
+    if today in player.profile.stats.freebet_dates:
         await interaction.response.send_message("Już odebrałeś swoj darmowy zakład dzisiaj", ephemeral=True)
         return
-    player.stats.freebet_dates.append(today)
+    player.profile.stats.freebet_dates.append(today)
 
-    table.add_player(player)
-    table.dealer.transfer_chips(player, 50)
-    table.bet(player, 50)
-
+    amount = 50
+    player.table.dealer.profile.transfer_chips(player.profile, amount)
+    await bet(interaction, player, amount)

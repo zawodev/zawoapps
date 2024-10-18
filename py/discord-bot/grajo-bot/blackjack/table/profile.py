@@ -14,8 +14,12 @@ class Profile:
     def save(self):
         save_profile_data(self.category, self.profile_id, self.stats.to_dict())
 
-    def withdraw(self, amount):
-        if self.stats.chips >= amount:
+    def has_chips(self, amount):
+        return self.stats.chips >= amount
+
+    def transfer_chips(self, other, amount):
+        if self.has_chips(amount):
             self.stats.chips -= amount
+            other.stats.chips += amount
             return True
         return False

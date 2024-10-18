@@ -1,15 +1,27 @@
 from blackjack.table.stats import Stats
+from blackjack.table.profile import Profile
+from blackjack.table.hand import Hand
 
 class Dealer:
-    def __init__(self, dealer_data=None):
-        self.hand = []
-        self.stats = Stats(dealer_data)
+    def __init__(self, profile: Profile):
+        # self.name = name
+        self.profile = profile
 
-    def deal(self, card):
-        self.hand.append(card)
+        # temporary, mid game class
+        self.hand = Hand()
 
-    def show_hand(self):
-        print(f"{self.hand[0]} ??")
+    def __str__(self):
+        return self.profile.stats.name
+        pass
+
+    def deal(self, card1, card2):
+        self.hand.deal(card1, card2)
+
+    def hit(self, card):
+        self.hand.hit(card)
+
+    def stand(self):
+        self.hand.stand()
 
     def clear_hand(self):
-        self.hand = []
+        self.hand = Hand()

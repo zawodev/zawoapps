@@ -3,11 +3,11 @@ from blackjack.table.player import Player
 from blackjack.table.dealer import Dealer
 from blackjack.table.profile import Profile
 
+import discord
+
 import random
 
 from blackjack.data_storage.json_data_storage import load_data
-from blackjack.data_storage.create_empty_profile import create_empty_dealers
-
 
 class BlackJackGame:
     def __init__(self, bot, casino_channel_id):
@@ -18,9 +18,9 @@ class BlackJackGame:
         self.casino_channel = None
         self.threads = None
 
-        create_empty_dealers(['Marek', 'Jarek', 'Darek', 'Fifonż', 'Wojtek', 'Piotrek', 'Kuba'])
-
         self.dealer_profiles = [Profile('dealers', dealer_key) for dealer_key in load_data('dealers').keys()]
+        self.available_dealers = [Dealer(dealer_profile) for dealer_profile in self.dealer_profiles]
+
         self.player_profiles = [Profile('players', player_key) for player_key in load_data('players').keys()]
 
         self.tables = []
@@ -32,8 +32,8 @@ class BlackJackGame:
         self.table_amount = len(self.threads) + 1
 
     def create_table(self, channel):
-        table_dealer = random.choice(self.dealers)
-        self.dealers.remove(table_dealer)
+        table_dealer = random.choice(self.available_dealers)
+        self.available_dealers.remove(table_dealer)
         return Table(table_dealer, channel, 1, 10, 1000)
 
     def create_tables(self):
@@ -41,18 +41,32 @@ class BlackJackGame:
         for thread in self.threads:
             self.tables.append(self.create_table(thread))  # other tables
 
-    def add_player(self, player):
-        self.players.append(player)
-        player.save()
+# -----------------------
 
-    def get_player(self, profile_id):
-        for player in self.players:
-            if player.profile_id == profile_id:
-                return player
-        return None
+    async def get_table_or_notify(self, interaction: discord.Interaction):
+        def get_table(channel_id):
+            for _ in self.tables:
+                if _.channel.id == channel_id:
+                    return _
+            return None
 
-    def get_table(self, channel_id):
-        for table in self.tables:
-            if table.channel.id == channel_id:
-                return table
-        return None
+        table = get_table(interaction.channel_id)
+
+        if table is None:
+            await interaction.response.send_message(
+                f"Nie możesz grać w blackjacka poza kasynem mordo, zapraszamy na <#{self.casino_channel.id}>",
+                ephemeral=True
+            )
+        return table
+
+# -----------------------
+
+    def get_player_profile(self, profile_id):
+        for profile in self.player_profiles:
+            if profile.profile_id == str(profile_id):
+                return profile
+        new_profile = Profile('players', str(profile_id))
+        self.player_profiles.append(new_profile)
+        return new_profile
+
+# -----------------------

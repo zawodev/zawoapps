@@ -67,3 +67,24 @@ class Stats:
             "total_games_dates": self.total_games_dates,
             "freebet_dates": self.freebet_dates,
         }
+
+    def __str__(self):
+        return (
+            f"🪙 Hajs: {self.chips}$\n" 
+            f"🏆 Wygrane: {self.wins}\n"
+            f"🤝 Remisy: {self.pushes}\n"
+            f"🥺 Porażki: {self.losses}\n"
+            f"🃏 Karty: {self.cards_drawn}\n"
+            f"🤲 Ręce: {self.hands_played}\n"
+            f"🔥 Blackjacks: {self.blackjacks}\n"
+            f"💥 Busts: {self.busts}\n"
+            f"🔁 Double: {self.doubles}\n"
+            f"🔀 Split: {self.splits}\n"
+            f"🛑 Stand: {self.stands}\n"
+            f"👊 Hit: {self.hits}\n"
+            f"🏦 Max hajs: {self.max_chips}$\n"
+            f"🏧 Pożyczki: {self.loans}\n"
+            f"💸 Pożyczki spłacone: {self.loans_paid}\n"
+            f"📅 Gry: {sum(self.total_games_dates)}\n"
+            f"📅 Freebety: {len(self.freebet_dates)}\n"
+        )

@@ -3,6 +3,7 @@ class Hand:
         self.cards = []
         self.bet = 0
         self.stands = False
+        self.forfeited = False
 
     def __str__(self):
         output = ""
@@ -13,14 +14,30 @@ class Hand:
     def deal(self, card1, card2):
         self.cards = [card1, card2]
 
-    def hit(self, card):
-        self.cards.append(card)
+# ------------- HAND ACTIONS -------------
+
+    def bet(self, amount):
+        self.bet = amount
 
     def stand(self):
         self.stands = True
 
+    def hit(self, card):
+        self.cards.append(card)
+
+    def split(self):
+        second_hand = Hand()
+        second_hand.cards.append(self.cards.pop())
+        return second_hand
+
     def double(self):
         self.bet *= 2
+
+    def forfeit(self):
+        self.bet //= 2
+        self.forfeited = True
+
+# ------------- HAND ACTIONS -------------
 
     def value(self):
         has_ace = False

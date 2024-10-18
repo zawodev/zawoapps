@@ -8,7 +8,7 @@ from blackjack.old_blackjack import setup_blackjack_commands
 # ======================== DISCORD BOT ========================
 
 load_dotenv()
-token = os.getenv('DISCORD_TOKEN')
+token = os.getenv('DISCORD_TOKEN_NAPIERDALER')
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="/", intents=intents)
@@ -27,6 +27,10 @@ async def on_ready():
         print(f'Synced {len(synced)} slash commands.')
     except Exception as e:
         print(e)
+
+    # send message to channel with id 1250873886426402937
+    channel = await bot.fetch_channel(1250873886426402937)
+    await channel.send("bot is online")
 
     # await setup_blackjack_game(bot) # <------------------------------------ THIS NEW
 
