@@ -1,6 +1,7 @@
 import discord
 from blackjack.game.blackjack_game import BlackJackGame
 from blackjack.old_blackjack import players, game_active
+from datetime import datetime
 
 from blackjack.systems import (
     join_table_system as jts,
@@ -14,26 +15,30 @@ from blackjack.systems import (
 )
 
 
-async def get_player_if_valid(bjg: BlackJackGame,
-                              interaction: discord.Interaction,
-                              check_game_activity=False,
-                              check_chips=0):
-    # zawsze sprawdzamy czy jakiś stół istnieje
+async def get_player_if_valid(
+        bjg: BlackJackGame,
+        interaction: discord.Interaction,
+        check_game_activity=False,
+        check_chips=0,
+        check_min_max_bet=False,
+        check_player_freebet_used=False,
+        check_player_bet_used=False):
+    # CHECK 0: zawsze sprawdzamy, czy dany stół w ogóle istnieje
     table = await bjg.get_table_or_notify(interaction)
     if table is None:
         return None
 
-    # opcjonalne sprawdzenie, czy gra jest aktywna
+    # CHECK 1: opcjonalne sprawdzenie, czy gra jest aktywna
     if check_game_activity:
         table_game_active = table.game_active_or_notify(interaction)
         if table_game_active:
             return None
 
-    # uzyskanie profilu gracza
+    # weź gracza, jego profil, dodaj na stół
     player_profile = bjg.get_player_profile(interaction.user.id)
     player = table.get_or_create_player(player_profile)
 
-    # opcjonalne sprawdzenie, czy gracz ma wystarczająco żetonów
+    # CHECK 2: opcjonalne sprawdzenie, czy gracz ma wystarczająco żetonów
     if check_chips == -1:
         chips_amount = player.get_current_hand().bet
     else:
@@ -42,6 +47,28 @@ async def get_player_if_valid(bjg: BlackJackGame,
     if not has_chips:
         return None
 
+    # CHECK 3: opcjonalne sprawdzenie, czy zakład mieści się w przedziale
+    if check_min_max_bet:
+        if chips_amount < table.min_bet:
+            await interaction.response.send_message(f"Minimalny zakład to {table.min_bet}$", ephemeral=True)
+            return None
+        if chips_amount > table.max_bet:
+            await interaction.response.send_message(f"Maxymalny zakład to {table.max_bet}$", ephemeral=True)
+            return None
+
+    # CHECK 4: opcjonalne sprawdzenie, czy gracz już odebrał darmowy zakład
+    if check_player_freebet_used:
+        today = datetime.now().strftime('%Y-%m-%d')
+        if today in player.profile.stats.freebet_dates:
+            await interaction.response.send_message("Już odebrałeś swoj darmowy zakład dzisiaj", ephemeral=True)
+            return None
+
+    # CHECK 5: opcjonalne sprawdzenie, czy gracz już postawił zakład
+    if check_player_bet_used:
+        if player.bet_used:
+            await interaction.response.send_message("Już postawiłeś zakład", ephemeral=True)
+            return None
+
     return player
 
 
@@ -49,47 +76,119 @@ def slash_commands_setup(bjg: BlackJackGame):
 
     @bjg.bot.tree.command(name="join table", description="Dołącz do stołu na danym kanale")
     async def join_table(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=False,
+            check_chips=0,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await jts.join_table(interaction, player)
 
     @bjg.bot.tree.command(name="leave table", description="Opuść stół")
     async def leave_table(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=False,
+            check_chips=0,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await jts.leave_table(interaction, player)
 
     @bjg.bot.tree.command(name="freebet", description="Jeden dziennie darmowy zakład za 50$")
     async def freebet(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=0,
+            check_min_max_bet=True,
+            check_player_freebet_used=True,
+            check_player_bet_used=True
+        )
         await bs.free_bet(interaction, player)
 
     @bjg.bot.tree.command(name="bet", description="Zakład na grę")
     async def bet(interaction: discord.Interaction, amount: int):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True, check_chips=amount)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=amount,
+            check_min_max_bet=True,
+            check_player_freebet_used=False,
+            check_player_bet_used=True
+        )
         await bs.bet(interaction, player, amount)
 
     @bjg.bot.tree.command(name="hit", description="Dobierz kartę")
     async def hit(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=0,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await tgs.hit(interaction, player)
 
     @bjg.bot.tree.command(name="stand", description="Zakończ swoją turę")
     async def stand(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=0,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await tgs.stand(interaction, player)
 
     @bjg.bot.tree.command(name="double", description="Podwój zakład i dobierz kartę")
     async def double(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True, check_chips=-1)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=-1,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await tgs.double(interaction, player)
 
     @bjg.bot.tree.command(name="split", description="Podziel rękę na dwie")
     async def split(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True, check_chips=-1)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=-1,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await tgs.split(interaction, player)
 
     @bjg.bot.tree.command(name="forfeit", description="Zrezygnuj z gry")
     async def forfeit(interaction: discord.Interaction):
-        player = await get_player_if_valid(bjg, interaction, check_game_activity=True)
+        player = await get_player_if_valid(
+            bjg,
+            interaction,
+            check_game_activity=True,
+            check_chips=0,
+            check_min_max_bet=False,
+            check_player_freebet_used=False,
+            check_player_bet_used=False
+        )
         await tgs.forfeit(interaction, player)
 
     @bjg.bot.tree.command(name="tip", description="Podaruj napiwek innemu graczowi")
