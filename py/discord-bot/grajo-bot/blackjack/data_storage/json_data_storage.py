@@ -3,6 +3,7 @@ import os
 
 
 DATA_FILE_NAME = 'data.json'
+DATA_FILE_NAME = os.path.join(os.path.dirname(__file__), DATA_FILE_NAME)
 
 
 def save_data(category, data):

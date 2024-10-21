@@ -22,6 +22,10 @@ async def on_ready():
     # ustaw status bota jako niewidoczny
     # await bot.change_presence(status=discord.Status.invisible)
 
+    # setup black jack
+    await setup_blackjack(bot, 1294787218581487656)
+
+
     print(f'bot zalogowany jako {bot.user}')
     try:
         synced = await bot.tree.sync()
@@ -30,8 +34,7 @@ async def on_ready():
         print(e)
 
 
-    # setup black jack
-    await setup_blackjack(bot, 1294787218581487656)
+
 
     # send message to channel with id 1250873886426402937
     #channel = await bot.fetch_channel(1250873886426402937)

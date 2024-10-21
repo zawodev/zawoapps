@@ -10,6 +10,6 @@ async def setup_blackjack(bot, casino_channel_id):
     # new reaction UI for later
     reaction_listener_setup(bjg)
     # classic /commands
-    slash_commands_setup(bjg)
+    await slash_commands_setup(bot, bjg)
 
 

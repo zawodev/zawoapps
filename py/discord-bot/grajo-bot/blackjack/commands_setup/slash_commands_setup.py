@@ -39,10 +39,10 @@ async def get_player_if_valid(
     player_profile = bjg.get_player_profile(interaction.user.id)
 
     # tworzenie gracza
-    if not table.has_player_with_id(player_profile.id):
+    if not table.has_player_with_id(player_profile.profile_id):
         player = Player(player_profile, table)
     else:
-        player = table.get_player_with_id(player_profile.id)
+        player = table.get_player_with_id(player_profile.profile_id)
 
     # CHECK 2: opcjonalne sprawdzenie, czy gracz ma wystarczająco żetonów
     if check_chips == -1:
@@ -78,9 +78,9 @@ async def get_player_if_valid(
     return player
 
 
-def slash_commands_setup(bjg: BlackJackGame):
+async def slash_commands_setup(bot, bjg: BlackJackGame):
 
-    @bjg.bot.tree.command(name="join table", description="Dołącz do stołu na danym kanale")
+    @bot.tree.command(name="join_table", description="Dołącz do stołu na danym kanale")
     async def join_table(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -91,9 +91,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await jts.join_table(interaction, player)
+        if player is not None:
+            await jts.join_table(interaction, player)
 
-    @bjg.bot.tree.command(name="leave table", description="Opuść stół")
+    @bot.tree.command(name="leave_table", description="Opuść stół")
     async def leave_table(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -104,9 +105,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await jts.leave_table(interaction, player)
+        if player is not None:
+            await jts.leave_table(interaction, player)
 
-    @bjg.bot.tree.command(name="freebet", description="Jeden dziennie darmowy zakład za 50$")
+    @bot.tree.command(name="free_bet", description="Jeden dziennie darmowy zakład za 50$")
     async def freebet(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -117,9 +119,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=True,
             check_player_bet_used=True
         )
-        await bs.free_bet(interaction, player)
+        if player is not None:
+            await bs.free_bet(interaction, player)
 
-    @bjg.bot.tree.command(name="bet", description="Zakład na grę")
+    @bot.tree.command(name="bet", description="Zakład na grę")
     async def bet(interaction: discord.Interaction, amount: int):
         player = await get_player_if_valid(
             bjg,
@@ -130,9 +133,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=True
         )
-        await bs.bet(interaction, player, amount)
+        if player is not None:
+            await bs.bet(interaction, player, amount)
 
-    @bjg.bot.tree.command(name="hit", description="Dobierz kartę")
+    @bot.tree.command(name="hit", description="Dobierz kartę")
     async def hit(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -143,9 +147,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await tgs.hit(interaction, player)
+        if player is not None:
+            await tgs.hit(interaction, player)
 
-    @bjg.bot.tree.command(name="stand", description="Zakończ swoją turę")
+    @bot.tree.command(name="stand", description="Zakończ swoją turę")
     async def stand(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -156,9 +161,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await tgs.stand(interaction, player)
+        if player is not None:
+            await tgs.stand(interaction, player)
 
-    @bjg.bot.tree.command(name="double", description="Podwój zakład i dobierz kartę")
+    @bot.tree.command(name="double", description="Podwój zakład i dobierz kartę")
     async def double(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -169,9 +175,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await tgs.double(interaction, player)
+        if player is not None:
+            await tgs.double(interaction, player)
 
-    @bjg.bot.tree.command(name="split", description="Podziel rękę na dwie")
+    @bot.tree.command(name="split", description="Podziel rękę na dwie")
     async def split(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -182,9 +189,10 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await tgs.split(interaction, player)
+        if player is not None:
+            await tgs.split(interaction, player)
 
-    @bjg.bot.tree.command(name="forfeit", description="Zrezygnuj z gry")
+    @bot.tree.command(name="forfeit", description="Zrezygnuj z gry")
     async def forfeit(interaction: discord.Interaction):
         player = await get_player_if_valid(
             bjg,
@@ -195,39 +203,46 @@ def slash_commands_setup(bjg: BlackJackGame):
             check_player_freebet_used=False,
             check_player_bet_used=False
         )
-        await tgs.forfeit(interaction, player)
+        if player is not None:
+            await tgs.forfeit(interaction, player)
 
-    @bjg.bot.tree.command(name="tip", description="Podaruj napiwek innemu graczowi")
+    @bot.tree.command(name="tip", description="Podaruj napiwek innemu graczowi")
     async def tip(interaction: discord.Interaction, target_player: discord.Member):
         player = await get_player_if_valid(bjg, interaction, check_chips=1)
         await ts.tip(interaction, player, target_player)
 
-    @bjg.bot.tree.command(name="thanks for the tip", description="Podziękuj za napiwek albo odbierz napiwek jako zbankrutowany gracz")
+    @bot.tree.command(name="thanks_for_the_tip", description="Podziękuj za napiwek albo odbierz napiwek jako zbankrutowany gracz")
     async def thanks_for_the_tip(interaction: discord.Interaction, tipper: discord.Member = None):
         player = await get_player_if_valid(bjg, interaction)
-        await ts.thanks_for_the_tip(interaction, player, tipper)
+        if player is not None:
+            await ts.thanks_for_the_tip(interaction, player, tipper)
 
-    @bjg.bot.tree.command(name="stats", description="Wyświetl statystyki gracza lub wszystkich graczy")
+    @bot.tree.command(name="stats", description="Wyświetl statystyki gracza lub wszystkich graczy")
     async def stats(interaction: discord.Interaction, user: discord.User = None):
         player = await get_player_if_valid(bjg, interaction)
-        await ss.stats(interaction, player, user)
+        if player is not None:
+            await ss.stats(interaction, player, user)
 
-    @bjg.bot.tree.command(name="ranking", description="wyświetl ranking graczy od najbogatszego do najbiedniejszego")
+    @bot.tree.command(name="ranking", description="wyświetl ranking graczy od najbogatszego do najbiedniejszego")
     async def ranking(interaction: discord.Interaction):
         player = await get_player_if_valid(bjg, interaction)
-        await rs.ranking(interaction, player)
+        if player is not None:
+            await rs.ranking(interaction, player)
 
-    @bjg.bot.tree.command(name="loan", description="Weź pożyczkę (maksymalna kwota: 1000$)")
+    @bot.tree.command(name="loan", description="Weź pożyczkę (maksymalna kwota: 1000$)")
     async def loan(interaction: discord.Interaction, kwota: int):
         player = await get_player_if_valid(bjg, interaction)
-        await ls.loan(interaction, player, kwota)
+        if player is not None:
+            await ls.loan(interaction, player, kwota)
 
-    @bjg.bot.tree.command(name="pay loan", description="Spłać pożyczkę")
+    @bot.tree.command(name="pay_loan", description="Spłać pożyczkę")
     async def pay_loan(interaction: discord.Interaction, kwota: int = None):
         player = await get_player_if_valid(bjg, interaction)
-        await ls.pay_loan(interaction, player, kwota)
+        if player is not None:
+            await ls.pay_loan(interaction, player, kwota)
 
-    @bjg.bot.tree.command(name="help", description="Wyświetl pomoc")
+    @bot.tree.command(name="help", description="Wyświetl pomoc")
     async def help(interaction: discord.Interaction):
         player = await get_player_if_valid(bjg, interaction)
-        await hs.help(interaction, player)
+        if player is not None:
+            await hs.help(interaction, player)

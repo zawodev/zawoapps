@@ -3,8 +3,6 @@ from blackjack.table.player import Player
 from blackjack.table.dealer import Dealer
 from blackjack.table.profile import Profile
 
-from blackjack.data_storage.txt_data_storage import load_data_as_list
-
 import discord
 
 import random
@@ -29,13 +27,14 @@ class BlackJackGame:
 
     async def setup(self):
         self.casino_channel = await self.bot.fetch_channel(self.casino_channel_id)
-        self.threads = await self.casino_channel.threads()
+        # get threads in casino channel
+        self.threads = self.casino_channel.threads
         self.table_amount = len(self.threads) + 1
 
-        dealer_names = load_data_as_list() #dziwne
+        dealer_names = ["Marek", "Romper", "Extreme", "Pablo", "Wojtuś", "Fifonż", "Kubuś", "Fentanylu"]
 
         while len(self.available_dealers) < self.table_amount:
-            self.available_dealers.append(Dealer(Profile('dealers', str(len(self.available_dealers) + 1))))
+            self.available_dealers.append(Dealer(Profile('dealers', random.choice(dealer_names))))
 
         self.create_tables()
 
