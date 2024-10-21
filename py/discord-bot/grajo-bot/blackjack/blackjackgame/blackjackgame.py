@@ -3,6 +3,8 @@ from blackjack.table.player import Player
 from blackjack.table.dealer import Dealer
 from blackjack.table.profile import Profile
 
+from blackjack.data_storage.txt_data_storage import load_data_as_list
+
 import discord
 
 import random
@@ -18,23 +20,31 @@ class BlackJackGame:
         self.casino_channel = None
         self.threads = None
 
+        self.player_profiles = [Profile('players', player_key) for player_key in load_data('players').keys()]
         self.dealer_profiles = [Profile('dealers', dealer_key) for dealer_key in load_data('dealers').keys()]
         self.available_dealers = [Dealer(dealer_profile) for dealer_profile in self.dealer_profiles]
 
-        self.player_profiles = [Profile('players', player_key) for player_key in load_data('players').keys()]
-
         self.tables = []
-        self.create_tables() # możliwe że to musi być w setup bo nie wiem czy sie podmieni???
+
 
     async def setup(self):
         self.casino_channel = await self.bot.fetch_channel(self.casino_channel_id)
         self.threads = await self.casino_channel.threads()
         self.table_amount = len(self.threads) + 1
 
+        dealer_names = load_data_as_list() #dziwne
+
+        while len(self.available_dealers) < self.table_amount:
+            self.available_dealers.append(Dealer(Profile('dealers', str(len(self.available_dealers) + 1))))
+
+        self.create_tables()
+
+
     def create_table(self, channel):
         table_dealer = random.choice(self.available_dealers)
         self.available_dealers.remove(table_dealer)
         return Table(table_dealer, channel, 1, 10, 1000)
+
 
     def create_tables(self):
         self.tables.append(self.create_table(self.casino_channel))  # main table

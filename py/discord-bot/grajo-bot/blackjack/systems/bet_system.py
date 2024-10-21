@@ -1,7 +1,7 @@
 import discord
 
 from datetime import datetime
-from blackjack.game.blackjack_game import BlackJackGame
+from blackjack.blackjackgame.blackjackgame import BlackJackGame
 from blackjack.old_blackjack import players
 from blackjack.table.player import Player
 

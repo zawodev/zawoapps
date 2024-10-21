@@ -1,5 +1,5 @@
 import discord
-from blackjack.game.blackjack_game import BlackJackGame
+from blackjack.blackjackgame.blackjackgame import BlackJackGame
 from blackjack.old_blackjack import players, game_active
 from datetime import datetime
 
@@ -13,6 +13,7 @@ from blackjack.systems import (
     loan_system as ls,
     help_system as hs
 )
+from blackjack.table.player import Player
 
 
 async def get_player_if_valid(
@@ -36,7 +37,12 @@ async def get_player_if_valid(
 
     # weź gracza, jego profil, dodaj na stół
     player_profile = bjg.get_player_profile(interaction.user.id)
-    player = table.get_or_create_player(player_profile)
+
+    # tworzenie gracza
+    if not table.has_player_with_id(player_profile.id):
+        player = Player(player_profile, table)
+    else:
+        player = table.get_player_with_id(player_profile.id)
 
     # CHECK 2: opcjonalne sprawdzenie, czy gracz ma wystarczająco żetonów
     if check_chips == -1:

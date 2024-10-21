@@ -3,7 +3,6 @@ from blackjack.old_blackjack import game_active
 from blackjack.table.hand import Hand
 from blackjack.table.dealer import Dealer
 from blackjack.table.deck import Deck
-from blackjack.table.player import Player
 from blackjack.table.profile import Profile
 
 
@@ -23,19 +22,14 @@ class Table:
 
 # ------------- GAME ACTIONS -------------
 
-    def get_or_create_player(self, player_profile: Profile):
-        for player in self.players:
-            if player.player_profile.profile_id == player_profile.profile_id:
-                return player
-        player = Player(player_profile, self)
-        self.players.append(player)
-        return player
+    def remove_player_with_id(self, player_id):
+        self.players.remove(player_id)
 
-    def remove_player(self, player: Player):
-        self.players.remove(player)
+    def has_player_with_id(self, player_id):
+        return any(player.profile.id == player_id for player in self.players)
 
-    def has_player(self, player: Player):
-        return player in self.players
+    def get_player_with_id(self, player_id):
+        return next(player for player in self.players if player.profile.id == player_id)
 
 # ------------- GAME ACTIONS -------------
 
@@ -47,40 +41,40 @@ class Table:
 
 # ------------- GAME ACTIONS -------------
 
-    def bet(self, player: Player, amount: int):
+    def bet(self, player, amount: int):
         if player in self.players:
             player.bet(amount)
             player.profile.transfer_chips(self.dealer.profile, amount)
         else:
             print("Player not in table")
 
-    def hit(self, player: Player):
+    def hit(self, player):
         if player in self.players:
             player.hit(self.deck.draw())
         else:
             print("Player not in table")
 
-    def stand(self, player: Player):
+    def stand(self, player):
         if player in self.players:
             player.stand()
         else:
             print("Player not in table")
 
-    def double(self, player: Player):
+    def double(self, player):
         if player in self.players:
             player.double(self.deck.draw())
             player.profile.transfer_chips(self.dealer.profile, player.get_current_hand().bet)
         else:
             print("Player not in table")
 
-    def split(self, player: Player):
+    def split(self, player):
         if player in self.players:
             player.split()
             player.profile.transfer_chips(self.dealer.profile, player.get_current_hand().bet)
         else:
             print("Player not in table")
 
-    def forfeit(self, player: Player):
+    def forfeit(self, player):
         if player in self.players:
             player.forfeit()
         else:

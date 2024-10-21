@@ -1,5 +1,5 @@
 import discord
-from blackjack.game.game_logic import BlackJackGame
+from blackjack.blackjackgame.blackjackgame import BlackJackGame
 
 def reaction_listener_setup(bjg: BlackJackGame):
 

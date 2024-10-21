@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 
 from blackjack.old_blackjack import setup_blackjack_commands
+from blackjack.game import setup_blackjack
 
 # ======================== DISCORD BOT ========================
 
@@ -28,13 +29,13 @@ async def on_ready():
     except Exception as e:
         print(e)
 
+
+    # setup black jack
+    await setup_blackjack(bot, 1294787218581487656)
+
     # send message to channel with id 1250873886426402937
-    channel = await bot.fetch_channel(1250873886426402937)
-    await channel.send("bot is online")
-
-    # await setup_blackjack_game(bot) # <------------------------------------ THIS NEW
-
-    # await channel.send("bot is online")
+    #channel = await bot.fetch_channel(1250873886426402937)
+    #await channel.send("bot is online")
 
 # ======================== MAREK ========================
 
@@ -42,7 +43,7 @@ async def on_ready():
 
 # ======================== BLACKJACK ========================
 
-setup_blackjack_commands(bot)
+# setup_blackjack_commands(bot)
 
 # ======================== RUN DISCORD BOT ========================
 
