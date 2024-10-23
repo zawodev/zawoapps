@@ -36,6 +36,11 @@ class Stats:
         self.biggest_loan = profile_data.get('biggest_loan', 0)
         self.biggest_loan_paid = profile_data.get('biggest_loan_paid', 0)
 
+        # Free bets
+        self.total_freebets = profile_data.get('total_freebets', 0)
+        self.freebets_won = profile_data.get('freebets_won', 0)
+        self.freebets_lost = profile_data.get('freebets_lost', 0)
+
         # By day
         self.total_games_dates = profile_data.get('total_games_dates', {})
         self.freebet_dates = profile_data.get('freebet_dates', {})
@@ -64,6 +69,9 @@ class Stats:
             "loans_paid": self.loans_paid,
             "biggest_loan": self.biggest_loan,
             "biggest_loan_paid": self.biggest_loan_paid,
+            "total_freebets": self.total_freebets,
+            "freebets_won": self.freebets_won,
+            "freebets_lost": self.freebets_lost,
             "total_games_dates": self.total_games_dates,
             "freebet_dates": self.freebet_dates,
         }
@@ -85,6 +93,9 @@ class Stats:
             f"🏦 Max hajs: {self.max_chips}$\n"
             f"🏧 Pożyczki: {self.loans}\n"
             f"💸 Pożyczki spłacone: {self.loans_paid}\n"
+            f"🎰 Freebety: {self.total_freebets}\n"
+            f"🎰 Freebety wygrane: {self.freebets_won}\n"
+            f"🎰 Freebety przegrane: {self.freebets_lost}\n"
             f"📅 Gry: {sum(self.total_games_dates)}\n"
             f"📅 Freebety: {len(self.freebet_dates)}\n"
         )
