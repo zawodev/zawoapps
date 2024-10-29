@@ -1,0 +1,36 @@
+{
+    "players" : {
+        "1" : {
+            "name" : "John",
+            "balance" : 1000
+        },
+        "2" : {
+            "name" : "Jane",
+            "balance" : 500
+        }
+    },
+    "dealers" : {
+        "1" : {
+            "name" : "Dealer 1",
+            "balance" : 10000
+        },
+        "2" : {
+            "name" : "Dealer 2",
+            "balance" : 5000
+        }
+    },
+    "tables" : {
+        "blackjack" : {
+            "dealer" : 1,
+            "players" : [1, 2],
+            "min_bet" : 10,
+            "max_bet" : 100
+        },
+        "2" : {
+            "dealer" : 2,
+            "players" : [1],
+            "min_bet" : 5,
+            "max_bet" : 50
+        }
+    }
+}

@@ -3,13 +3,12 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 
-from blackjack.old_blackjack import setup_blackjack_commands
-from blackjack.game import setup_blackjack
+from gambling_bot.main import setup
 
 # ======================== DISCORD BOT ========================
 
 load_dotenv()
-token = os.getenv('DISCORD_TOKEN_NAPIERDALER')
+token = os.getenv('DISCORD_TOKEN_MAREKROMPER')
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="/", intents=intents)
@@ -22,9 +21,7 @@ async def on_ready():
     # ustaw status bota jako niewidoczny
     # await bot.change_presence(status=discord.Status.invisible)
 
-    # setup black jack
-    await setup_blackjack(bot, 1294787218581487656)
-
+    await setup(bot)
 
     print(f'bot zalogowany jako {bot.user}')
     try:
@@ -32,9 +29,6 @@ async def on_ready():
         print(f'Synced {len(synced)} slash commands.')
     except Exception as e:
         print(e)
-
-
-
 
     # send message to channel with id 1250873886426402937
     #channel = await bot.fetch_channel(1250873886426402937)
