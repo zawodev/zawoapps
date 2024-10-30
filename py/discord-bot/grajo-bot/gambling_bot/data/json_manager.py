@@ -36,3 +36,27 @@ def save_data(data, *path):
 
     with open(DATA_FILE_NAME, 'w') as file:
         json.dump(all_data, file, indent=4)
+
+
+def delete_data(*path):
+    if not os.path.exists(DATA_FILE_NAME):
+        return
+    try:
+        with open(DATA_FILE_NAME, 'r') as file:
+            all_data = json.load(file)
+    except json.JSONDecodeError:
+        return
+
+    # traverse to the last nested dictionary
+    d = all_data
+    for key in path[:-1]:
+        d = d.get(key)
+        if d is None:
+            return  # path does not exist, nothing to delete
+
+    # delete the last key in the path
+    d.pop(path[-1], None)
+
+    # save the modified data back to the file
+    with open(DATA_FILE_NAME, 'w') as file:
+        json.dump(all_data, file, indent=4)

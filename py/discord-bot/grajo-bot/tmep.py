@@ -3,8 +3,10 @@ C = {
     "b": 2
 }
 
-for key in C.items():
-    print(key)
+B = {"b": 3}
+
+C.update(B)
+print(C)
 
 class Animal:
     def __init__(self, name):

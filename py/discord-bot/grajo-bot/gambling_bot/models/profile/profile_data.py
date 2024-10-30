@@ -3,7 +3,7 @@ from gambling_bot.models.dict_data.dict_data import DictData
 class ProfileData(DictData):
 
     def __init__(self, data, *path):
-        default_profile = {
+        default_data = {
             "name": 'Profile',
             "wins": 0,
             "pushes": 0,
@@ -32,9 +32,7 @@ class ProfileData(DictData):
             "total_games_dates": {},
             "freebet_dates": {}
         }
-        profile_data = data or {}
-        default_profile.update(profile_data)
-        super().__init__(default_profile, *path)
+        super().__init__(default_data, data, *path)
 
 
     def __str__(self):

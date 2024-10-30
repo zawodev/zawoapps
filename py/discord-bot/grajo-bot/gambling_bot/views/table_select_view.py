@@ -1,6 +1,8 @@
 import discord
 from discord.ui import Button
 from gambling_bot.casino import casino
+from gambling_bot.models.table.table import Table
+from gambling_bot.views import bet_select_view
 
 # display blackjack tables
 async def display_blackjack_tables(interaction: discord.Interaction):
@@ -21,21 +23,21 @@ async def display_spin_and_play_tables(interaction: discord.Interaction):
     view = TableSelectView(tables)
     await interaction.response.send_message(embed=embed, view=view)
 
-
-def create_button_callback(table_number):
+def _create_button_callback(table: Table):
     async def button_callback(interaction: discord.Interaction):
-        await interaction.response.send_message(f"Table {table_number}")
+        await bet_select_view.display(interaction, table)
     return button_callback
-
 
 class TableSelectView(discord.ui.View):
     def __init__(self, tables):
         super().__init__()
-        for i, table in enumerate(tables, start=1):
+        for table in tables:
+            table_name = f"{table.table_data.path[-1]}"
+            table_unq_id = f"{table.table_data.path[-1]}_{table.table_data.path[-2]}"
             button = Button(
-                label=f"Table {i}",
+                label=table_name,
                 style=discord.ButtonStyle.secondary,
-                custom_id=f"table_{i}"
+                custom_id=table_unq_id
             )
-            button.callback = create_button_callback(i)
+            button.callback = _create_button_callback(table)
             self.add_item(button)
