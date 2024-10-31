@@ -15,7 +15,6 @@ def _create_button_callback(table: Table, bet: int):
         await table_view.display(interaction, table, bet)
     return button_callback
 
-
 class BetSelectView(discord.ui.View):
     def __init__(self, table: Table):
         super().__init__()

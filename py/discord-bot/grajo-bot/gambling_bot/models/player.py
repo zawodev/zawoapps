@@ -1,14 +1,15 @@
-from blackjack.table.stats import Stats
-from blackjack.table.profile import Profile
-from blackjack.table.hand import Hand
-from blackjack.table.table import Table
+
 import discord
 
+from gambling_bot.models.profile.profile import Profile
+from gambling_bot.models.table.table import Table
+from gambling_bot.models.hand import Hand
+
+
 class Player:
-    def __init__(self, profile: Profile, table: Table):
+    def __init__(self, profile: Profile):
         # self.name = name
         self.profile = profile
-        self.table = table
 
         # temporary, mid game class
         self.hands = [Hand()]  # Karty na każdą rękę
@@ -17,7 +18,7 @@ class Player:
         self.bet_used = False
 
     def save(self):
-        self.profile.save()
+        self.profile.profile_data.save()
 
 
     def __eq__(self, other):

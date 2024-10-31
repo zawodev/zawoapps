@@ -1,4 +1,6 @@
 import discord
+
+from gambling_bot.table_type import TableType
 from gambling_bot.views import table_select_view
 
 
@@ -14,12 +16,12 @@ class GameSelectView(discord.ui.View):
 
     @discord.ui.button(label="blackjack", style=discord.ButtonStyle.blurple, custom_id="blackjack")
     async def blackjack(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await table_select_view.display_blackjack_tables(interaction)
+        await table_select_view.display(interaction, TableType.BLACKJACK)
 
     @discord.ui.button(label="[texas_holdem]", style=discord.ButtonStyle.red, custom_id="texas_holdem")
     async def texas_holdem(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await table_select_view.display_texas_holdem_tables(interaction)
+        await table_select_view.display(interaction, TableType.TEXAS_HOLDEM)
 
     @discord.ui.button(label="[spin_and_play]", style=discord.ButtonStyle.green, custom_id="spin_and_play")
     async def spin_and_play(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await table_select_view.display_spin_and_play_tables(interaction)
+        await table_select_view.display(interaction, TableType.SPIN_AND_PLAY)

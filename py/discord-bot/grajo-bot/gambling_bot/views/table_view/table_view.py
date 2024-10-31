@@ -1,36 +1,55 @@
 import discord
 
 from gambling_bot.models.player import Player
+from gambling_bot.models.profile.profile import Profile
+from gambling_bot.models.table.blackjack_table import BlackJackTable
 from gambling_bot.models.table.table import Table
 
 
-def create_player(profile, table):
+def create_player(profile: Profile, table: Table):
     player_id = profile.profile_data.path[-1]
     if player_id not in table.players:
-        table.players.append(Player(profile, table))
+        table.players.append(Player(profile))
 
 
 async def display(interaction: discord.Interaction, table: Table, bet: int):
-    view = BlackjackTableView()
-    embed = discord.Embed(title="gogow", description="opis stolu konkretnego", color=0xffff00)
 
-    for player in table.players:
-        embed.add_field(name=player.name, value=f"{player.hand} {player.bet}")
+    table.add_player(interaction, bet)
+
+    view = BlackjackTableView(table) # noqa
+    embed = view.create_embed()
 
     if table.game_active:
         await interaction.response.edit_message(embed=embed, view=view)
     else:
         await interaction.response.send_message(embed=embed, view=view)
-        table.game_active = True
+        table.start_game()
 
 
-class BlackjackTableView(discord.ui.View):
+class TableView(discord.ui.View):
     def __init__(self):
         super().__init__()
 
+    def create_embed(self):
+        pass
+
+class BlackjackTableView(TableView):
+    def __init__(self, table: BlackJackTable):
+        super().__init__()
+        self.table = table
+
+    def create_embed(self):
+        embed = discord.Embed(title="Game View", description="opis", color=0xffff00)
+
+        for player in self.table.players:
+            player: Player
+            embed.add_field(name=player.profile.profile_data['name'], value=player.get_current_hand(), inline=False)
+
+        return embed
+
     @discord.ui.button(label="hit", style=discord.ButtonStyle.green, custom_id="hit")
     async def hit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        pass
+        self.table.hit(interaction.user.id)
 
     @discord.ui.button(label="stand", style=discord.ButtonStyle.red, custom_id="stand")
     async def stand(self, interaction: discord.Interaction, button: discord.ui.Button):

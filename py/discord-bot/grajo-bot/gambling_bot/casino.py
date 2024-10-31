@@ -25,5 +25,11 @@ class Casino:
     def setup(self, bot):
         self.bot = bot
 
+    def get_player_profile_with_id(self, player_profile_id):
+        for profile in self.player_profiles:
+            if profile.profile_data.path[-1] == player_profile_id:
+                return profile
+        return None
+
 # uzyskanie instancji casino
 casino = Casino()
