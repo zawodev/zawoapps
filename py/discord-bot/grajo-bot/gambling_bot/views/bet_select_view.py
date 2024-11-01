@@ -1,6 +1,6 @@
 import discord
 from gambling_bot.models.table.table import Table
-from gambling_bot.views import table_view
+from gambling_bot.views.table_view import table_view
 from discord.ui import Button
 
 
@@ -23,8 +23,7 @@ class BetSelectView(discord.ui.View):
             bet_unq_id = f"{table.table_data.path[-1]}_{table.table_data.path[-2]}_{bet}"
             button = Button(
                 label=bet_name,
-                style=discord.ButtonStyle.blurple,
-                custom_id=bet_unq_id
+                style=discord.ButtonStyle.blurple, custom_id=bet_unq_id
             )
             button.callback = _create_button_callback(table, bet)
             self.add_item(button)
