@@ -1,18 +1,21 @@
 import discord
 from gambling_bot.models.table.table import Table
-from gambling_bot.views.table_view import table_view
+from gambling_bot.views import a4_table_view
 from discord.ui import Button
+from gambling_bot.casino import casino
 
 
 async def display(interaction: discord.Interaction, table: Table):
-    embed = discord.Embed(title=table.table_data.path[-1], description="opis stolu konkretnego", color=0xffff00)
+    embed = discord.Embed(title=table.table_data.path[-1], description="opis stolu konkretnego", color=0xffaff0)
     view = BetSelectView(table)
     await interaction.response.send_message(embed=embed, view=view)
 
 
 def _create_button_callback(table: Table, bet: int):
     async def button_callback(interaction: discord.Interaction):
-        await table_view.display(interaction, table, bet)
+        player_profile = casino.get_player_profile_with_id(str(interaction.user.id))
+        table.add_player(player_profile, bet)
+        await a4_table_view.display(interaction, table)
     return button_callback
 
 class BetSelectView(discord.ui.View):

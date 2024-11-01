@@ -2,32 +2,50 @@ class Hand:
     def __init__(self):
         self.cards = []
         self.bet = 0
-        self.stands = False
-        self.forfeited = False
+        #self.stands = False
+        #self.forfeited = False
+        self.hand_state = 0 # 0 - not ready, 1 - playing, 2 - finished
 
     def __str__(self):
-        output = ""
-        for card in self.cards:
-            output += str(card) + " "
-        return output
+        state_mapping = {
+            0: ("❌", "not ready"),
+            1: ("🎲", "playing"),
+            2: ("✅", "finished")
+        }
+        emoji, description = state_mapping.get(self.hand_state, ("❓", "error"))
+        state_output = f"{emoji} {description}"
+
+        bet_output = f"bet: {self.bet}$"
+
+        if not self.cards:
+            hand_output = "hand: Empty hand"
+        else:
+            hand_output = "hand: " + " ".join(str(card) for card in self.cards)
+
+        return f"{state_output}\n{bet_output}\n{hand_output}"
 
     def deal(self, card1, card2):
         self.cards = [card1, card2]
 
     # ------------- HAND ACTIONS -------------
 
-    def bet(self, amount):
+    def ready(self):
+        self.hand_state = 1
+
+    def place_bet(self, amount):
         self.bet = amount
 
     def stand(self):
-        self.stands = True
+        self.hand_state = 2
 
     def hit(self, card):
         self.cards.append(card)
 
-    def split(self):
+    def split(self, card1, card2):
         second_hand = Hand()
         second_hand.cards.append(self.cards.pop())
+        second_hand.cards.append(card2)
+        self.cards.append(card1)
         return second_hand
 
     def double(self):
@@ -35,7 +53,7 @@ class Hand:
 
     def forfeit(self):
         self.bet //= 2
-        self.forfeited = True
+        self.hand_state = 2
 
     # ------------- HAND ACTIONS -------------
 

@@ -1,25 +1,22 @@
 from gambling_bot.models.hand import Hand
 from gambling_bot.models.profile.profile import Profile
+from gambling_bot.models.deck import Deck
 
 class Dealer:
     def __init__(self, profile: Profile):
-        # self.name = name
         self.profile = profile
-        #names = ['Marek', 'Romper', 'Extreme', 'Gambler', 'WYGRAŁEM', 'NIE', 'Fenomenalnie', 'Jogurt']
-        #profile.profile_data.data['name'] = 'Dealer' + names.pop()
-
-        # temporary, mid game class
         self.hand = Hand()
+        self.deck = Deck()
 
     def __str__(self):
-        return self.profile.stats.name
+        return self.profile.profile_data.data['name']
         pass
 
-    def deal(self, card1, card2):
-        self.hand.deal(card1, card2)
+    def deal(self):
+        self.hand.deal(self.deck.draw(), self.deck.draw())
 
-    def hit(self, card):
-        self.hand.hit(card)
+    def hit(self):
+        self.hand.hit(self.deck.draw())
 
     def stand(self):
         self.hand.stand()

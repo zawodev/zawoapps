@@ -1,8 +1,6 @@
-
 import discord
 
 from gambling_bot.models.profile.profile import Profile
-from gambling_bot.models.table.table import Table
 from gambling_bot.models.hand import Hand
 
 
@@ -28,11 +26,17 @@ class Player:
             return self.profile.__eq__(other.profile)
         return False
 
+    def __str__(self):
+        return self.profile.__str__()
+
     def print_hands(self):
         # print his hands and bets
         pass
 
     # ------------- GAME ACTIONS -------------
+
+    def ready(self):
+        self.hands[self.active_hand].ready()
 
     def deal(self, card1, card2):
         self.hands[self.active_hand].deal(card1, card2)
@@ -50,13 +54,13 @@ class Player:
         self.bet_used = True
 
     def stand(self):
-        self.active_hand += 1
+        self.hands[self.active_hand].stand()
 
     def hit(self, card):
         self.hands[self.active_hand].hit(card)
 
-    def split(self):
-        self.hands.append(self.hands[self.active_hand].split())
+    def split(self, card1, card2):
+        self.hands.append(self.hands[0].split(card1, card2))
         self.split_used = True
 
     def double(self, card):
@@ -73,8 +77,12 @@ class Player:
     def get_result(self):
         return
 
-    def clear_hands(self):
+    def finish(self):
         self.hands = [Hand()]
+        self.active_hand = 0
+        self.split_used = False
+        self.bet_used = False
+        self.player_state = 2
 
     def has_chips_or_notify(self, interaction: discord.Interaction, amount: int):
         if not self.profile.has_chips(amount):
