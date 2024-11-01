@@ -4,13 +4,12 @@ class Hand:
         self.bet = 0
         #self.stands = False
         #self.forfeited = False
-        self.hand_state = 0 # 0 - not ready, 1 - playing, 2 - finished
+        self.hand_state = 0 # 0 - playing, 1 - finished
 
     def __str__(self):
         state_mapping = {
-            0: ("❌", "not ready"),
-            1: ("🎲", "playing"),
-            2: ("✅", "finished")
+            0: ("🎲", "playing"),
+            1: ("✅", "finished")
         }
         emoji, description = state_mapping.get(self.hand_state, ("❓", "error"))
         state_output = f"{emoji} {description}"
@@ -32,11 +31,11 @@ class Hand:
     def ready(self):
         self.hand_state = 1
 
-    def place_bet(self, amount):
-        self.bet = amount
+    def add_bet(self, amount: int):
+        self.bet += amount
 
     def stand(self):
-        self.hand_state = 2
+        self.hand_state = 1
 
     def hit(self, card):
         self.cards.append(card)
@@ -48,12 +47,14 @@ class Hand:
         self.cards.append(card1)
         return second_hand
 
-    def double(self):
+    def double(self, card):
         self.bet *= 2
+        self.hit(card)
+        self.stand()
 
     def forfeit(self):
         self.bet //= 2
-        self.hand_state = 2
+        self.hand_state = 1
 
     # ------------- HAND ACTIONS -------------
 

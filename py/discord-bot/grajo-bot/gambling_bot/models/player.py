@@ -12,12 +12,12 @@ class Player:
         # temporary, mid game class
         self.hands = [Hand()]  # Karty na każdą rękę
         self.active_hand = 0
+
         self.split_used = False
-        self.bet_used = False
+        self.is_ready = False
 
     def save(self):
         self.profile.profile_data.save()
-
 
     def __eq__(self, other):
         if isinstance(other, str):
@@ -26,35 +26,33 @@ class Player:
             return self.profile.__eq__(other.profile)
         return False
 
-    def __str__(self):
-        return self.profile.__str__()
+    def __str__(self): #❌ if is not ready + profile to str
+        emoji = "✅" if self.is_ready else "❌"
+        return f"{emoji} {self.profile}"
 
-    def print_hands(self):
-        # print his hands and bets
-        pass
+    def get_hands_str(self):
+        return "\n".join(str(hand) for hand in self.hands)
 
     # ------------- GAME ACTIONS -------------
 
-    def ready(self):
-        self.hands[self.active_hand].ready()
-
     def deal(self, card1, card2):
-        self.hands[self.active_hand].deal(card1, card2)
+        self.hands[0].deal(card1, card2)
 
-    def is_finished(self):
-        return self.active_hand == len(self.hands)
+    def ready(self):
+        self.is_ready = True
 
-    def get_current_hand(self):
-        return self.hands[self.active_hand]
+    def add_bet(self, amount):
+        self.hands[0].add_bet(amount)
+
+    def stands(self):
+        return all(hand.hand_state == 1 for hand in self.hands)
 
     # ------------- HAND ACTIONS -------------
 
-    def bet(self, amount):
-        self.hands[self.active_hand].bet(amount)
-        self.bet_used = True
-
     def stand(self):
         self.hands[self.active_hand].stand()
+        if self.split_used:
+            self.active_hand = 1
 
     def hit(self, card):
         self.hands[self.active_hand].hit(card)
@@ -64,28 +62,16 @@ class Player:
         self.split_used = True
 
     def double(self, card):
-        self.hands[self.active_hand].double()
-        self.hit(card)
-        self.stand()
+        self.hands[self.active_hand].double(card)
+        if self.split_used:
+            self.active_hand = 1
 
     def forfeit(self):
         self.hands[self.active_hand].forfeit()
-        self.active_hand += 1
+        if self.split_used:
+            self.active_hand = 1
 
     # ------------- HAND ACTIONS -------------
 
-    def get_result(self):
-        return
-
-    def finish(self):
-        self.hands = [Hand()]
-        self.active_hand = 0
-        self.split_used = False
-        self.bet_used = False
-        self.player_state = 2
-
-    def has_chips_or_notify(self, interaction: discord.Interaction, amount: int):
-        if not self.profile.has_chips(amount):
-            interaction.response.send_message("Nie masz wystarczająco żetonów!", ephemeral=True)
-            return False
-        return True
+    def has_chips(self, amount: int):
+        return self.profile.has_chips(amount)

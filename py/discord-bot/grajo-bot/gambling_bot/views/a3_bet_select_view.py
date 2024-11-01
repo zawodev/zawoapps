@@ -14,7 +14,7 @@ async def display(interaction: discord.Interaction, table: Table):
 def _create_button_callback(table: Table, bet: int):
     async def button_callback(interaction: discord.Interaction):
         player_profile = casino.get_player_profile_with_id(str(interaction.user.id))
-        table.add_player(player_profile, bet)
+        table.add_bet_player(player_profile, bet)
         await a4_table_view.display(interaction, table)
     return button_callback
 
@@ -28,5 +28,5 @@ class BetSelectView(discord.ui.View):
                 label=bet_name,
                 style=discord.ButtonStyle.blurple, custom_id=bet_unq_id
             )
-            button.callback = _create_button_callback(table, bet)
+            button.callback = _create_button_callback(table, int(bet))
             self.add_item(button)

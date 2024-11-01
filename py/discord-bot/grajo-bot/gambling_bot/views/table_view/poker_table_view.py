@@ -1,9 +1,10 @@
+from gambling_bot.models.table.poker_table import PokerTable
 from gambling_bot.views.table_view.table_view import TableView
 import discord
 
 
 class PokerTableView(TableView):
-    def __init__(self, table):
+    def __init__(self, table: PokerTable):
         super().__init__()
         self.table = table
 
@@ -16,7 +17,7 @@ class PokerTableView(TableView):
 
     @discord.ui.button(label="raise", style=discord.ButtonStyle.red, custom_id="raise")
     async def raise_(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.table.raise_(interaction.user.id)
+        self.table.raise_bet(interaction.user.id)
 
     @discord.ui.button(label="fold", style=discord.ButtonStyle.blurple, custom_id="fold")
     async def fold(self, interaction: discord.Interaction, button: discord.ui.Button):

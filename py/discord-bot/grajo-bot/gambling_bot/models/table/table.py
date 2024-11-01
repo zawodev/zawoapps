@@ -10,11 +10,19 @@ class Table:
         self.players = []
         self.dealer = dealer
 
-    def add_player(self, player_profile: Profile, bet: int):
-        player = Player(player_profile)
-        player.get_current_hand().place_bet(bet)
+    def add_bet_player(self, player_profile: Profile, bet: int):
+        player_id = player_profile.profile_data.path[-1]
+        player: Player = self.get_player(player_id)
+        if player is None:
+            player = Player(player_profile)
+            self.players.append(player)
+            return
 
-        self.players.append(player)
+        if not player.is_ready and player.has_chips(bet):
+            player_profile.transfer_chips(self.dealer.profile, bet)
+            player.add_bet(bet)
+
+
 
     def get_player(self, player_id):
         player_id = str(player_id)

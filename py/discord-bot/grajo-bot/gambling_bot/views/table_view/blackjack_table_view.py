@@ -6,7 +6,7 @@ from gambling_bot.views import a4_table_view
 
 
 class BlackjackTableView(TableView):
-    def __init__(self, table):
+    def __init__(self, table: BlackJackTable):
         super().__init__()
         self.table = table
 
@@ -15,7 +15,7 @@ class BlackjackTableView(TableView):
 
         for player in self.table.players:
             player: Player
-            embed.add_field(name=player, value=player.get_current_hand(), inline=False)
+            embed.add_field(name=player, value=player.get_hands_str(), inline=False)
 
         embed.add_field(name=self.table.dealer.profile.profile_data['name'], value=self.table.dealer.hand, inline=False)
 
