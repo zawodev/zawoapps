@@ -33,6 +33,13 @@ class Player:
     def get_hands_str(self):
         return "\n".join(str(hand) for hand in self.hands)
 
+    def check(self):
+        hand_value = self.get_current_hand().value()
+        if hand_value > 21:
+            self.get_current_hand().bust()
+        elif hand_value == 21:
+            self.get_current_hand().blackjack()
+
     # ------------- GAME ACTIONS -------------
 
     def deal(self, card1, card2):
@@ -56,6 +63,7 @@ class Player:
 
     def hit(self, card):
         self.hands[self.active_hand].hit(card)
+        self.check()
 
     def split(self, card1, card2):
         self.hands.append(self.hands[0].split(card1, card2))
@@ -63,6 +71,7 @@ class Player:
 
     def double(self, card):
         self.hands[self.active_hand].double(card)
+        self.check()
         if self.split_used:
             self.active_hand = 1
 
@@ -75,3 +84,6 @@ class Player:
 
     def has_chips(self, amount: int):
         return self.profile.has_chips(amount)
+
+    def get_current_hand(self):
+        return self.hands[self.active_hand]

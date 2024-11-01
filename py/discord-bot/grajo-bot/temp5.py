@@ -27,7 +27,7 @@ async def pokaz_embed(ctx):
 
     # 4. embed z obrazkiem
     embed4 = discord.Embed(title="Embed z Obrazkiem", description="Główny obrazek poniżej.")
-    embed4.set_image(url="https://gratisography.com/wp-content/uploads/2024/01/gratisography-cyber-kitty-800x525.jpg")
+    embed4.set_thumbnail(url="https://gratisography.com/wp-content/uploads/2024/01/gratisography-cyber-kitty-800x525.jpg")
 
     # 5. embed z autorem
     embed5 = discord.Embed(title="Embed z Autorem", description="Autor wyświetlony powyżej.")
@@ -59,7 +59,7 @@ async def pokaz_embed(ctx):
     # wysyłanie embedów
     embeds = [embed1, embed2, embed3, embed4, embed5, embed6, embed7, embed8, embed9, embed10]
     for embed in embeds:
-        await ctx.send(embed=embed)
+        await ctx.send(embeds=embeds)
 
 # uruchomienie bota
 bot.run(token)

@@ -8,6 +8,10 @@ class Dealer:
         self.hand = Hand()
         self.deck = Deck()
 
+        self.hand.deal(self.deck.draw(), self.deck.draw())
+        while self.hand.value() < 17:
+            self.hand.hit(self.deck.draw())
+
     def __str__(self):
         return self.profile.profile_data.data['name']
         pass

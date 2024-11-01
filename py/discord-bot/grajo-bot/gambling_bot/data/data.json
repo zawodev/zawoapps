@@ -341,6 +341,35 @@
                 "freebets_lost": 0,
                 "total_games_dates": {},
                 "freebet_dates": {}
+            },
+            "380820820466991116": {
+                "name": "bazawhuj",
+                "wins": 0,
+                "pushes": 0,
+                "losses": 0,
+                "cards_drawn": 0,
+                "hands_played": 0,
+                "blackjacks": 0,
+                "busts": 0,
+                "doubles": 0,
+                "splits": 0,
+                "stands": 0,
+                "hits": 0,
+                "chips": 1000,
+                "total_won_chips": 0,
+                "total_lost_chips": 0,
+                "biggest_win": 0,
+                "biggest_loss": 0,
+                "max_chips": 1000,
+                "loans": 0,
+                "loans_paid": 0,
+                "biggest_loan": 0,
+                "biggest_loan_paid": 0,
+                "total_freebets": 0,
+                "freebets_won": 0,
+                "freebets_lost": 0,
+                "total_games_dates": {},
+                "freebet_dates": {}
             }
         }
     }

@@ -13,5 +13,5 @@ class TableView(discord.ui.View):
     def __init__(self):
         super().__init__()
 
-    def create_embed(self):
+    def create_embeds(self):
         pass

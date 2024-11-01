@@ -21,6 +21,7 @@ def _create_button_callback(table: Table, bet: int):
 class BetSelectView(discord.ui.View):
     def __init__(self, table: Table):
         super().__init__()
+        self.table = table
         for bet in table.table_data['bets']:
             bet_name = f"bet {bet}"
             bet_unq_id = f"{table.table_data.path[-1]}_{table.table_data.path[-2]}_{bet}"
@@ -30,3 +31,8 @@ class BetSelectView(discord.ui.View):
             )
             button.callback = _create_button_callback(table, int(bet))
             self.add_item(button)
+
+    @discord.ui.button(label="ready", style=discord.ButtonStyle.green, custom_id="ready")
+    async def ready(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.table.ready(interaction.user.id)
+        await a4_table_view.display(interaction, self.table)

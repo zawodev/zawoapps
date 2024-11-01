@@ -28,11 +28,16 @@ class Hand:
 
     # ------------- HAND ACTIONS -------------
 
-    def ready(self):
-        self.hand_state = 1
-
     def add_bet(self, amount: int):
         self.bet += amount
+
+    def bust(self):
+        self.hand_state = 1
+
+    def blackjack(self):
+        self.hand_state = 1
+
+    # ------------- HAND ACTIONS -------------
 
     def stand(self):
         self.hand_state = 1
@@ -59,6 +64,9 @@ class Hand:
     # ------------- HAND ACTIONS -------------
 
     def value(self):
+        return self.values()[-1]
+
+    def values(self):
         has_ace = False
         values = []
         value = 0

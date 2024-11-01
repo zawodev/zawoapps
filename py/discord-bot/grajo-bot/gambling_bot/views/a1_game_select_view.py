@@ -5,7 +5,7 @@ from gambling_bot.views import a2_table_select_view
 
 
 async def display(interaction: discord.Interaction):
-    embed = discord.Embed(title="Casino Bot", description="wersja: 0.23 alpha", color=0x00ff77)
+    embed = discord.Embed(title="Casino Bot", description="wersja: 0.28 alpha", color=0x00ff77)
     view = GameSelectView()
     await interaction.response.send_message(embed=embed, view=view)
 

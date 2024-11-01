@@ -16,13 +16,17 @@ class Table:
         if player is None:
             player = Player(player_profile)
             self.players.append(player)
-            return
 
         if not player.is_ready and player.has_chips(bet):
             player_profile.transfer_chips(self.dealer.profile, bet)
             player.add_bet(bet)
 
 
+    def ready(self, player_id):
+        player: Player = self.get_player(player_id)
+        if player is not None and not player.is_ready:
+            player.deal(self.dealer.deck.draw(), self.dealer.deck.draw())
+            player.ready()
 
     def get_player(self, player_id):
         player_id = str(player_id)
@@ -38,4 +42,4 @@ class Table:
         self.active_game_message = None
         self.players = []
         self.dealer = None
-        self.table_data.save()
+        #self.table_data.save()

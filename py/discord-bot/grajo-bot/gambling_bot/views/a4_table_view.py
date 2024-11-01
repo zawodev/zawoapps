@@ -20,12 +20,12 @@ async def display(interaction: discord.Interaction, table: Table):
     else:
         raise ValueError(f"Unknown table type: {table_type}")
 
-    embed = view.create_embed()
+    embeds = view.create_embeds()
 
     if table.active_game_message is not None:
-        await table.active_game_message.edit(embed=embed, view=view)
+        await table.active_game_message.edit(embeds=embeds, view=view)
     else:
-        msg = await interaction.channel.send(embed=embed, view=view)
+        msg = await interaction.channel.send(embeds=embeds, view=view)
         table.start_game(msg)
 
     await interaction.response.defer()

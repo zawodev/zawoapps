@@ -8,7 +8,7 @@ class PokerTableView(TableView):
         super().__init__()
         self.table = table
 
-    def create_embed(self):
+    def create_embeds(self):
         pass
 
     @discord.ui.button(label="call", style=discord.ButtonStyle.green, custom_id="call")
