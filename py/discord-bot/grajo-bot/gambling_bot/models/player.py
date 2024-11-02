@@ -51,8 +51,8 @@ class Player:
     def add_bet(self, amount):
         self.hands[0].add_bet(amount)
 
-    def stands(self):
-        return all(hand.hand_state == 1 for hand in self.hands)
+    def all_hands_stand(self):
+        return all(hand.finished for hand in self.hands)
 
     # ------------- HAND ACTIONS -------------
 

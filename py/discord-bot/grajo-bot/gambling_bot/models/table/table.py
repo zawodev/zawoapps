@@ -21,12 +21,24 @@ class Table:
             player_profile.transfer_chips(self.dealer.profile, bet)
             player.add_bet(bet)
 
+    def check_end_game(self):
+        if self.all_stands():
+            self.end_game()
+
+    def check_all_stands(self):
+        if self.all_stands():
+            self.dealer.hand.is_hidden = False
+            self.dealer.hand.is_ready = True
+            self.dealer.hand.finished = True
 
     def ready(self, player_id):
         player: Player = self.get_player(player_id)
         if player is not None and not player.is_ready:
             player.deal(self.dealer.deck.draw(), self.dealer.deck.draw())
             player.ready()
+
+        if self.all_ready():
+            self.dealer.hand.is_ready = True
 
     def get_player(self, player_id):
         player_id = str(player_id)
@@ -35,11 +47,21 @@ class Table:
                 return player
         return None
 
+    # ============ GAME ============
+
     def start_game(self, game_message):
         self.active_game_message = game_message
 
     def end_game(self):
         self.active_game_message = None
         self.players = []
-        self.dealer = None
+        self.dealer.init()
         #self.table_data.save()
+
+    # ============ CHECKS ============
+
+    def all_stands(self):
+        return all(player.all_hands_stand() for player in self.players) and len(self.players) > 0
+
+    def all_ready(self):
+        return all(player.is_ready for player in self.players) and len(self.players) > 0

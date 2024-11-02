@@ -1,6 +1,7 @@
 from enum import Enum
 
 class HandValue(Enum):
+    HV00 = "https://cdn.discordapp.com/attachments/886007452997386273/1302218772878327818/00.png"
     HV01 = "https://cdn.discordapp.com/attachments/886007452997386273/1302039640953458780/01.png"
     HV02 = "https://cdn.discordapp.com/attachments/886007452997386273/1302039641352044595/02.png"
     HV03 = "https://cdn.discordapp.com/attachments/886007452997386273/1302039641691783229/03.png"

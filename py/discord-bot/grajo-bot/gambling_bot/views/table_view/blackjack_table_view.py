@@ -15,15 +15,10 @@ class BlackjackTableView(TableView):
 
     def create_embeds(self):
         embeds = []
-        used_colors = set()
 
         for player in self.table.players:
             player: Player
-
-            player_color = random.randint(0x100000, 0xFFFFFF)
-            while player_color in used_colors:
-                player_color = random.randint(0x100000, 0xFFFFFF)
-            used_colors.add(player_color)
+            player_color = int(player.profile.profile_data.data['color'])
 
             for hand in player.hands:
                 hand_value = hand.value()
@@ -35,43 +30,59 @@ class BlackjackTableView(TableView):
                 embed.set_thumbnail(url=HandValue.from_int(hand_value))
                 embeds.append(embed)
 
+        dealer_hand = self.table.dealer.hand
         dealer_embed = discord.Embed(
             title=self.table.dealer,
-            description=f"{self.table.dealer.hand.cards[0]} ??",
+            description=dealer_hand,
             color=0xFFFF00
         )
-        dealer_value = self.table.dealer.hand.cards[0].value()
-        dealer_embed.set_thumbnail(url=HandValue.from_int(dealer_value))
+        dealer_embed.set_thumbnail(url=HandValue.from_int(dealer_hand.value()))
         embeds.append(dealer_embed)
 
         return embeds
 
     @discord.ui.button(label="hit", style=discord.ButtonStyle.green, custom_id="hit")
     async def hit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.table.hit(interaction.user.id)
-        await a4_table_view.display(interaction, self.table)
-        self.table.check()
+        if self.table.active_game_message is not None:
+            self.table.hit(interaction.user.id)
+            await a4_table_view.display(interaction, self.table)
+            self.table.check_end_game()
+        else:
+            await interaction.response.defer()
 
     @discord.ui.button(label="stand", style=discord.ButtonStyle.red, custom_id="stand")
     async def stand(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.table.stand(interaction.user.id)
-        await a4_table_view.display(interaction, self.table)
-        self.table.check()
+        if self.table.active_game_message is not None:
+            self.table.stand(interaction.user.id)
+            self.table.check_all_stands()
+            await a4_table_view.display(interaction, self.table)
+            self.table.check_end_game()
+        else:
+            await interaction.response.defer()
 
     @discord.ui.button(label="double", style=discord.ButtonStyle.blurple, custom_id="double")
     async def double(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.table.double(interaction.user.id)
-        await a4_table_view.display(interaction, self.table)
-        self.table.check()
+        if self.table.active_game_message is not None:
+            self.table.double(interaction.user.id)
+            await a4_table_view.display(interaction, self.table)
+            self.table.check_end_game()
+        else:
+            await interaction.response.defer()
 
     @discord.ui.button(label="split", style=discord.ButtonStyle.gray, custom_id="split")
     async def split(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.table.split(interaction.user.id)
-        await a4_table_view.display(interaction, self.table)
-        self.table.check()
+        if self.table.active_game_message is not None:
+            self.table.split(interaction.user.id)
+            await a4_table_view.display(interaction, self.table)
+            self.table.check_end_game()
+        else:
+            await interaction.response.defer()
 
     @discord.ui.button(label="forfeit", style=discord.ButtonStyle.danger, custom_id="forfeit")
     async def forfeit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.table.forfeit(interaction.user.id)
-        await a4_table_view.display(interaction, self.table)
-        self.table.check()
+        if self.table.active_game_message is not None:
+            self.table.forfeit(interaction.user.id)
+            await a4_table_view.display(interaction, self.table)
+            self.table.check_end_game()
+        else:
+            await interaction.response.defer()

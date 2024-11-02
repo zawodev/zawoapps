@@ -5,25 +5,21 @@ from gambling_bot.models.deck import Deck
 class Dealer:
     def __init__(self, profile: Profile):
         self.profile = profile
-        self.hand = Hand()
+        self.hand = None
+        self.deck = None
+        self.init()
+
+    def __str__(self): #❌ if is not ready + profile to str
+        emoji = "✅" if self.hand.is_ready else "❌"
+        return f"{emoji} {self.profile}"
+
+    def init(self):
         self.deck = Deck()
+        self.hand = Hand()
 
         self.hand.deal(self.deck.draw(), self.deck.draw())
         while self.hand.value() < 17:
             self.hand.hit(self.deck.draw())
 
-    def __str__(self):
-        return self.profile.profile_data.data['name']
-        pass
-
-    def deal(self):
-        self.hand.deal(self.deck.draw(), self.deck.draw())
-
-    def hit(self):
-        self.hand.hit(self.deck.draw())
-
-    def stand(self):
-        self.hand.stand()
-
-    def clear_hand(self):
-        self.hand = Hand()
+        self.hand.is_ready = False
+        self.hand.is_hidden = True

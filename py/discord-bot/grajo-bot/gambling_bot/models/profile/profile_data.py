@@ -1,10 +1,14 @@
+from random import random, randint
+
 from gambling_bot.models.dict_data.dict_data import DictData
 
 class ProfileData(DictData):
 
     def __init__(self, data, *path):
+        random_color = lambda: ((randint(128, 255) << 16) + (randint(128, 255) << 8) + randint(128, 255))
         default_data = {
             "name": 'Profile',
+            "color": random_color(),
             "wins": 0,
             "pushes": 0,
             "losses": 0,
