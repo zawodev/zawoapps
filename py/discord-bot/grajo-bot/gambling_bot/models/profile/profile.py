@@ -14,6 +14,9 @@ class Profile:
             return self.profile_data.path == other.profile_data.path
         return False
 
+    def save(self):
+        self.profile_data.save()
+
     def has_chips(self, amount):
         return self.profile_data.data.get('chips') >= amount
 

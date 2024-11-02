@@ -45,6 +45,7 @@ class BlackjackTableView(TableView):
     async def hit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.table.active_game_message is not None:
             self.table.hit(interaction.user.id)
+            self.table.check_all_stands()
             await a4_table_view.display(interaction, self.table)
             self.table.check_end_game()
         else:
@@ -64,6 +65,7 @@ class BlackjackTableView(TableView):
     async def double(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.table.active_game_message is not None:
             self.table.double(interaction.user.id)
+            self.table.check_all_stands()
             await a4_table_view.display(interaction, self.table)
             self.table.check_end_game()
         else:
@@ -73,6 +75,7 @@ class BlackjackTableView(TableView):
     async def split(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.table.active_game_message is not None:
             self.table.split(interaction.user.id)
+            self.table.check_all_stands()
             await a4_table_view.display(interaction, self.table)
             self.table.check_end_game()
         else:
@@ -82,6 +85,7 @@ class BlackjackTableView(TableView):
     async def forfeit(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.table.active_game_message is not None:
             self.table.forfeit(interaction.user.id)
+            self.table.check_all_stands()
             await a4_table_view.display(interaction, self.table)
             self.table.check_end_game()
         else:

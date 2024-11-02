@@ -1,29 +1,9 @@
 {
-    "tables": {
-        "blackjack": {
-            "gowno": {
-                "bets": [
-                    "1",
-                    "10",
-                    "100"
-                ],
-                "chips_placed": 0
-            },
-            "gowno2": {
-                "bets": [
-                    "1",
-                    "10",
-                    "100"
-                ],
-                "chips_placed": 0
-            }
-        }
-    },
     "profiles": {
         "dealers": {
             "Dealer Marek": {
                 "name": "Dealer Marek",
-                "color": 11973372,
+                "color": 16172989,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -53,7 +33,7 @@
             },
             "Dealer Romper": {
                 "name": "Dealer Romper",
-                "color": 11464175,
+                "color": 13881586,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -65,7 +45,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 10,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -83,7 +63,7 @@
             },
             "Dealer Extreme": {
                 "name": "Dealer Extreme",
-                "color": 12106450,
+                "color": 11255967,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -95,7 +75,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 1100,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -113,7 +93,7 @@
             },
             "Dealer Gambler": {
                 "name": "Dealer Gambler",
-                "color": 10943209,
+                "color": 12828587,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -125,7 +105,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 1690,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -143,7 +123,7 @@
             },
             "Dealer WYGRA\u0141EM": {
                 "name": "Dealer WYGRA\u0141EM",
-                "color": 13221362,
+                "color": 10864020,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -155,7 +135,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 800,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -173,7 +153,7 @@
             },
             "Dealer NIE": {
                 "name": "Dealer NIE",
-                "color": 11190921,
+                "color": 13147636,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -185,7 +165,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 51430,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -203,7 +183,7 @@
             },
             "Dealer Fenomenalnie": {
                 "name": "Dealer Fenomenalnie",
-                "color": 11449798,
+                "color": 9218977,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -215,7 +195,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 1501,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -233,7 +213,37 @@
             },
             "Dealer Jogurt": {
                 "name": "Dealer Jogurt",
-                "color": 15311003,
+                "color": 10807993,
+                "wins": 0,
+                "pushes": 0,
+                "losses": 0,
+                "cards_drawn": 0,
+                "hands_played": 0,
+                "blackjacks": 0,
+                "busts": 0,
+                "doubles": 0,
+                "splits": 0,
+                "stands": 0,
+                "hits": 0,
+                "chips": 1590,
+                "total_won_chips": 0,
+                "total_lost_chips": 0,
+                "biggest_win": 0,
+                "biggest_loss": 0,
+                "max_chips": 1000,
+                "loans": 0,
+                "loans_paid": 0,
+                "biggest_loan": 0,
+                "biggest_loan_paid": 0,
+                "total_freebets": 0,
+                "freebets_won": 0,
+                "freebets_lost": 0,
+                "total_games_dates": {},
+                "freebet_dates": {}
+            },
+            "nig": {
+                "name": "nig",
+                "color": 14677230,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -265,7 +275,7 @@
         "players": {
             "336921078138011650": {
                 "name": "zawodev",
-                "color": 14220023,
+                "color": 9428689,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -277,7 +287,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 1179,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -295,7 +305,7 @@
             },
             "380820820466991116": {
                 "name": "bazawhuj",
-                "color": 15110088,
+                "color": 15723480,
                 "wins": 0,
                 "pushes": 0,
                 "losses": 0,
@@ -307,7 +317,7 @@
                 "splits": 0,
                 "stands": 0,
                 "hits": 0,
-                "chips": 1000,
+                "chips": 99998800,
                 "total_won_chips": 0,
                 "total_lost_chips": 0,
                 "biggest_win": 0,
@@ -322,6 +332,102 @@
                 "freebets_lost": 0,
                 "total_games_dates": {},
                 "freebet_dates": {}
+            },
+            "133333973282586625": {
+                "name": "mlodyfifonz",
+                "color": 10013421,
+                "wins": 0,
+                "pushes": 0,
+                "losses": 0,
+                "cards_drawn": 0,
+                "hands_played": 0,
+                "blackjacks": 0,
+                "busts": 0,
+                "doubles": 0,
+                "splits": 0,
+                "stands": 0,
+                "hits": 0,
+                "chips": 910,
+                "total_won_chips": 0,
+                "total_lost_chips": 0,
+                "biggest_win": 0,
+                "biggest_loss": 0,
+                "max_chips": 1000,
+                "loans": 0,
+                "loans_paid": 0,
+                "biggest_loan": 0,
+                "biggest_loan_paid": 0,
+                "total_freebets": 0,
+                "freebets_won": 0,
+                "freebets_lost": 0,
+                "total_games_dates": {},
+                "freebet_dates": {}
+            },
+            "350207555747840001": {
+                "name": "itspiecia",
+                "color": 9937829,
+                "wins": 0,
+                "pushes": 0,
+                "losses": 0,
+                "cards_drawn": 0,
+                "hands_played": 0,
+                "blackjacks": 0,
+                "busts": 0,
+                "doubles": 0,
+                "splits": 0,
+                "stands": 0,
+                "hits": 0,
+                "chips": 99950980,
+                "total_won_chips": 0,
+                "total_lost_chips": 0,
+                "biggest_win": 0,
+                "biggest_loss": 0,
+                "max_chips": 1000,
+                "loans": 0,
+                "loans_paid": 0,
+                "biggest_loan": 0,
+                "biggest_loan_paid": 0,
+                "total_freebets": 0,
+                "freebets_won": 0,
+                "freebets_lost": 0,
+                "total_games_dates": {},
+                "freebet_dates": {}
+            }
+        }
+    },
+    "tables": {
+        "blackjack": {
+            "gowno": {
+                "name": "Gowno table",
+                "description": "gowno cos tam japierdole description",
+                "bets": [
+                    "10",
+                    "50",
+                    "500"
+                ],
+                "max_bet": 1000000,
+                "chips_placed": 0
+            },
+            "piwo": {
+                "name": "Piwo table",
+                "description": "piwo piwo kocham piwo",
+                "bets": [
+                    "100",
+                    "500"
+                ],
+                "max_bet": 10000,
+                "chips_placed": 0
+            },
+            "chuj": {
+                "name": "Table",
+                "description": "Table description",
+                "bets": [
+                    "1",
+                    "10",
+                    "100"
+                ],
+                "max_bet": 1000,
+                "chips_placed": 0
             }
         }
     }

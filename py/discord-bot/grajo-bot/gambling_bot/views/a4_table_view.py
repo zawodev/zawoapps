@@ -13,9 +13,9 @@ async def display(interaction: discord.Interaction, table: Table):
     view: TableView
 
     table_type = str(table.table_data.path[-2])
-    if table_type == str(TableType.BLACKJACK):
+    if table_type == TableType.BLACKJACK.value[0]:
         view = BlackjackTableView(table) # noqa
-    elif table_type == TableType.POKER:
+    elif table_type == TableType.POKER.value[0]:
         view = PokerTableView(table) # noqa
     else:
         raise ValueError(f"Unknown table type: {table_type}")

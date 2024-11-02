@@ -4,7 +4,10 @@ class TableData(DictData):
 
     def __init__(self, data, *path):
         default_data = {
+            'name': "Table",
+            'description': "Table description",
             'bets': [10],
+            'max_bet': 1000,
             'chips_placed': 0,
         }
         super().__init__(default_data, data, *path)
@@ -12,7 +15,9 @@ class TableData(DictData):
 
     def __str__(self):
         return (
-            f"🪙 Hajs: {self['chips_placed']}\n"
+            f"🎰 {self['name']}\n"
+            f"📝 {self['description']}\n"
             f"🎲 Zakłady: {self['bets']}\n"
-            f"🎰 Typ: {self['type']}"
+            f"💰 Max zakład: {self['max_bet']}\n"
+            f"🪙 Hajs: {self['chips_placed']}\n"
         )

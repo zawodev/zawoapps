@@ -8,10 +8,10 @@ from gambling_bot.models.table.poker_table import PokerTable
 
 async def add_table(interaction: discord.Interaction, table_type: TableType, table_name: str, bets: list):
     # można się pozbyć tego ifa jeśli zrównasz klasy oraz dasz type jako argument zamiast ręcznie
-    if table_type == TableType.BLACKJACK:
+    if table_type.value[0] == TableType.BLACKJACK.value[0]:
         blackjack_table = BlackJackTable(casino.get_random_dealer(), {'bets': bets}, 'tables', 'blackjack', table_name)
         casino.blackjack_tables.append(blackjack_table)
-    elif table_type == TableType.POKER:
+    elif table_type.value[0] == TableType.POKER.value[0]:
         poker_table = PokerTable(casino.get_random_dealer(), {'bets': bets}, 'tables', 'poker', table_name)
         casino.spin_and_play_tables.append(poker_table)
     else:

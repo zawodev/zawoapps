@@ -17,7 +17,7 @@ class Player:
         self.is_ready = False
 
     def save(self):
-        self.profile.profile_data.save()
+        self.profile.save()
 
     def __eq__(self, other):
         if isinstance(other, str):
@@ -51,8 +51,11 @@ class Player:
     def add_bet(self, amount):
         self.hands[0].add_bet(amount)
 
+    def get_bet(self):
+        return self.hands[0].bet
+
     def all_hands_stand(self):
-        return all(hand.finished for hand in self.hands)
+        return all(hand.is_finished for hand in self.hands)
 
     # ------------- HAND ACTIONS -------------
 

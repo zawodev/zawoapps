@@ -6,11 +6,11 @@ from gambling_bot.models.table.table_type import TableType
 from gambling_bot.views import a3_bet_select_view
 
 async def display(interaction: discord.Interaction, table_type: TableType):
-    embed = discord.Embed(title=table_type, description="opis", color=0xff14aa)
+    embed = discord.Embed(title=table_type.value[0], description=table_type.value[1], color=0xff14aa)
     tables = []
-    if table_type == TableType.BLACKJACK:
+    if table_type.value[0] == TableType.BLACKJACK.value[0]:
         tables = casino.blackjack_tables
-    elif table_type == TableType.POKER:
+    elif table_type.value[0] == TableType.POKER.value[0]:
         tables = casino.poker_tables
     view = TableSelectView(tables)
     await interaction.response.send_message(embed=embed, view=view)

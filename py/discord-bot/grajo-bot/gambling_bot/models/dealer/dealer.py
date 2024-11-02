@@ -9,6 +9,9 @@ class Dealer:
         self.deck = None
         self.init()
 
+    def save(self):
+        self.profile.save()
+
     def __str__(self): #❌ if is not ready + profile to str
         emoji = "✅" if self.hand.is_ready else "❌"
         return f"{emoji} {self.profile}"
@@ -21,5 +24,6 @@ class Dealer:
         while self.hand.value() < 17:
             self.hand.hit(self.deck.draw())
 
+        self.hand.is_dealer = True
         self.hand.is_ready = False
         self.hand.is_hidden = True

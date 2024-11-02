@@ -6,7 +6,9 @@ from gambling_bot.casino import casino
 
 
 async def display(interaction: discord.Interaction, table: Table):
-    embed = discord.Embed(title=table.table_data.path[-1], description="opis stolu konkretnego", color=0xffaff0)
+    name = table.table_data.data['name']
+    description = table.table_data.__str__()
+    embed = discord.Embed(title=name, description=description, color=0xffaff0)
     view = BetSelectView(table)
     await interaction.response.send_message(embed=embed, view=view)
 
