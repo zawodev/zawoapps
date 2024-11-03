@@ -37,8 +37,12 @@ class Player:
         hand_value = self.get_current_hand().value()
         if hand_value > 21:
             self.get_current_hand().bust()
+            if self.split_used:
+                self.active_hand = 1
         elif hand_value == 21:
             self.get_current_hand().blackjack()
+            if self.split_used:
+                self.active_hand = 1
 
     # ------------- GAME ACTIONS -------------
 
@@ -53,6 +57,9 @@ class Player:
 
     def get_bet(self):
         return self.hands[0].bet
+
+    def get_all_bets(self):
+        return sum(hand.bet for hand in self.hands)
 
     def all_hands_stand(self):
         return all(hand.is_finished for hand in self.hands)

@@ -82,3 +82,6 @@ class Table:
 
     def all_ready(self):
         return all(player.is_ready for player in self.players) and len(self.players) > 0
+
+    def get_all_bets(self):
+        return sum(player.get_all_bets() for player in self.players)

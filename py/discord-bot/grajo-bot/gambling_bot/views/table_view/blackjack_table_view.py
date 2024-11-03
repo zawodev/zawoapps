@@ -16,6 +16,14 @@ class BlackjackTableView(TableView):
     def create_embeds(self):
         embeds = []
 
+        # create embed for table type
+        embed = discord.Embed(
+            title=self.table.table_data.data['name'],
+            description=self.table.table_data['description'],
+            color=0xffaff0
+        )
+        embeds.append(embed)
+
         for player in self.table.players:
             player: Player
             player_color = int(player.profile.profile_data.data['color'])

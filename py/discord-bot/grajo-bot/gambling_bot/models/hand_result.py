@@ -7,6 +7,10 @@ class HandResult(Enum):
     FORFEIT = 0.5
     LOSE = 0
     BUST = 0
+    NONE = 0
 
     def __float__(self):
         return float(self.value)
+
+    def __str__(self):
+        return self.name.lower()

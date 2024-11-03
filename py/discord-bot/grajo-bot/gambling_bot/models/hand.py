@@ -5,21 +5,29 @@ class Hand:
         self.cards = []
         self.bet = 0
 
-        self.is_finished = False
-        self.is_hidden = False # ❌ ❓ 🎲 ✅
         self.is_ready = True
+        self.is_finished = False
+
+        self.is_hidden = False # ❌ ❓ 🎲 ✅
         self.is_dealer = False
 
         self.is_forfeit = False
+        self.hand_result = HandResult.NONE
 
     def __str__(self):
         # ustawienia na podstawie stanu gry
-        state_mapping = {False: ("❌", "playing"), True: ("✅", "finished")}
+        state_mapping = {
+            False: ("❌", "not finished"),
+            True: ("✅", str(self.hand_result) if str(self.hand_result) != str(HandResult.NONE) else "finished")
+        }
         emoji, description = state_mapping[self.is_finished]
         state_output = f"{emoji} {description}"
 
         # wyświetlanie stawki w zależności od is_hidden
         bet_output = f"{'pot' if self.is_dealer else 'bet'}: {self.bet}$"
+
+        # winnings output, czyli ile wygrałeś ze swojej stawki
+        bet_output += f" -> {int(float(self.hand_result) * self.bet)}$"
 
         # formatowanie ręki, jeśli is_hidden jest aktywne i gra nie zakończona
         if not self.is_ready:
@@ -57,6 +65,7 @@ class Hand:
         second_hand = Hand()
         second_hand.cards.append(self.cards.pop())
         second_hand.cards.append(card2)
+        second_hand.bet = self.bet
         self.cards.append(card1)
         return second_hand
 
@@ -66,8 +75,8 @@ class Hand:
         self.stand()
 
     def forfeit(self):
-        self.bet //= 2
         self.is_finished = True
+        self.is_forfeit = True
 
     # ------------- HAND ACTIONS -------------
 
@@ -96,27 +105,32 @@ class Hand:
 
         return values
 
-    def calculate_winnings(self, dealer_hand):
+# ------------- AFTER GAME ACTIONS -------------
+
+    def calculate_result(self, dealer_hand):
         hand_value = self.value()
         dealer_hand_value = dealer_hand.value()
 
         if self.is_forfeit:
-            return self.bet * float(HandResult.FORFEIT)   # forfeit
+            return HandResult.FORFEIT   # forfeit
         elif dealer_hand_value == 21 and len(dealer_hand.cards) == 2 and hand_value == 21 and len(self.cards) == 2:
-            return self.bet * float(HandResult.PUSH)      # blackjack push
+            return HandResult.PUSH      # blackjack push
         elif dealer_hand_value == 21 and len(dealer_hand.cards) == 2:
-            return self.bet * float(HandResult.LOSE)      # dealer blackjack
+            return HandResult.LOSE      # dealer blackjack
         elif hand_value > 21:
-            return self.bet * float(HandResult.LOSE)      # bust
+            return HandResult.LOSE      # bust
         elif hand_value == 21 and len(self.cards) == 2:
-            return self.bet * float(HandResult.BLACKJACK) # blackjack
+            return HandResult.BLACKJACK # blackjack
         elif dealer_hand_value > 21:
-            return self.bet * float(HandResult.WIN)       # dealer bust
+            return HandResult.WIN       # dealer bust
         elif hand_value > dealer_hand_value:
-            return self.bet * float(HandResult.WIN)       # win
+            return HandResult.WIN       # win
         elif hand_value == dealer_hand_value:
-            return self.bet * float(HandResult.PUSH)      # push
+            return HandResult.PUSH      # push
         else:
-            return self.bet * float(HandResult.LOSE)      # lose
+            return HandResult.LOSE      # lose
 
-
+    def calculate_winnings(self, dealer_hand):
+        self.hand_result = self.calculate_result(dealer_hand)
+        print(self.hand_result, self.bet)
+        return self.bet * float(self.hand_result)

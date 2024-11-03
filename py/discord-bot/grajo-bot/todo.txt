@@ -9,3 +9,11 @@
 -staty per osobe
 -png na wyjściu jakieś nwm (pillow, templatki html render pdf)
 -pozyczki dla gamblerów (1min bana za każdy pożyczony żeton)
+
+
+
+BUGS:
+- ✅forfeit nie zwraca kasy
+- ✅tytuł stołu przed ekranem stołu
+- ✅po splitcie jak pierwsza reka ma busta to mozesz w nieskonczonosc dobiera
+- ✅drugi bet w splicie
