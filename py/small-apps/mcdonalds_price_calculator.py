@@ -1,116 +1,115 @@
+import json
 import numpy as np
-from scipy.optimize import minimize
 
-class ProductPricing:
-    def __init__(self):
-        self.products = []
-        self.equations = []
-        self.loyalty_point_rates = {}
+def load_data(filename):
+    """loads data from a JSON file"""
+    with open(filename, 'r') as file:
+        return json.load(file)
 
-    def add_product(self, product_name):
-        if product_name not in self.products:
-            self.products.append(product_name)
+def calculate_product_prices(data, main_currency):
+    """calculates approximate product prices in the main currency"""
+    products = set()
+    equations = []
+    values = []
+    conversion_equations = []
 
-    def add_equation(self, product_counts, price, tolerance=2.0):
-        """
-        Dodaj zestaw.
-        :param product_counts: dict, liczba sztuk każdego produktu w zestawie (np. {"Item A": 1, "Item B": 2}).
-        :param price: float, cena zestawu.
-        :param tolerance: float, dopuszczalna odchyłka od ceny zestawu.
-        """
-        self.equations.append({"counts": product_counts, "price": price, "tolerance": tolerance})
+    for item in data["sets"]:
+        unified_price = 0
+        main_price_found = False
+        for price_entry in item["price"]:
+            if price_entry["currency"] == main_currency:
+                unified_price += price_entry["value"]
+                main_price_found = True
+            else:
+                # keep track of other currencies for later
+                conversion_equations.append((item["products"], price_entry["value"], price_entry["currency"]))
 
-    def set_loyalty_rate(self, product_name, points):
-        """
-        Ustaw liczbę punktów lojalnościowych dla produktu.
-        :param product_name: str, nazwa produktu.
-        :param points: float, liczba punktów lojalnościowych.
-        """
-        self.loyalty_point_rates[product_name] = points
+        if main_price_found:
+            equation = {}
+            for product, quantity in item["products"].items():
+                equation[product] = equation.get(product, 0) + quantity
+                products.add(product)
+            equations.append(equation)
+            values.append(unified_price)
 
-    def solve(self):
-        # przypisz indeksy produktom
-        product_index = {product: i for i, product in enumerate(self.products)}
-        n = len(self.products)
+    products = sorted(products)
+    coefficients = []
+    for equation in equations:
+        row = [equation.get(product, 0) for product in products]
+        coefficients.append(row)
 
-        # funkcja celu do minimalizacji
-        def loss_function(prices):
-            error = 0
-            for eq in self.equations:
-                predicted_price = sum(prices[product_index[prod]] * count
-                                      for prod, count in eq["counts"].items())
-                diff = predicted_price - eq["price"]
-                error += (diff / eq["tolerance"])**2  # uwzględnij tolerancję
-            return error
+    # solve for product prices in the main currency
+    coefficients = np.array(coefficients)
+    values = np.array(values)
+    product_prices, _, _, _ = np.linalg.lstsq(coefficients, values, rcond=None)
 
-        # początkowe zgadywanie cen (np. wszystkie po 1 zł)
-        initial_guess = np.ones(n)
+    product_prices_dict = dict(zip(products, product_prices))
 
-        # ograniczenia (ceny muszą być >= 0)
-        bounds = [(0, None)] * n
+    # calculate conversion rates to secondary currencies
+    conversion_rates = {}
+    for products, other_price, other_currency in conversion_equations:
+        estimated_price = sum(product_prices_dict[product] * quantity for product, quantity in products.items())
+        if estimated_price > 0:  # avoid division by zero
+            rate = other_price / estimated_price
+            if other_currency not in conversion_rates:
+                conversion_rates[other_currency] = []
+            conversion_rates[other_currency].append(rate)
 
-        # rozwiązanie
-        result = minimize(loss_function, initial_guess, bounds=bounds)
-        prices = result.x
+    # average conversion rates
+    averaged_rates = {cur: sum(rates) / len(rates) for cur, rates in conversion_rates.items()}
 
-        # oblicz niepewności
-        uncertainties = []
-        for i in range(n):
-            perturbed_prices = prices.copy()
-            perturbed_prices[i] += 0.1  # małe zaburzenie
-            perturbed_error = loss_function(perturbed_prices)
-            uncertainties.append(np.sqrt(abs(perturbed_error - loss_function(prices))))
+    return product_prices_dict, averaged_rates
 
-        self.prices = {product: (price, uncertainty) for product, price, uncertainty
-                       in zip(self.products, prices, uncertainties)}
+def calculate_set_quality(data, product_prices, main_currency):
+    qualities = []
+    for item in data["sets"]:
+        actual_prices = [
+            price_entry["value"] for price_entry in item["price"] if price_entry["currency"] == main_currency
+        ]
+        if not actual_prices:
+            # if the set has no price in the main currency, append a default value
+            qualities.append(0.0)
+            continue
+        actual_price = sum(actual_prices)
+        estimated_price = sum(product_prices[product] * quantity
+                              for product, quantity in item["products"].items())
+        quality = estimated_price / actual_price
+        qualities.append(min(1.0, max(0.0, quality)))  # ensure 0.0 <= quality <= 1.0
+    return qualities
 
-    def get_product_prices(self):
-        return self.prices
 
-    def get_equation_costs(self):
-        """
-        Oblicz koszty zestawów na podstawie obecnych szacunków cen produktów.
-        :return: lista słowników z rzeczywistą ceną, przewidywaną ceną i różnicą.
-        """
-        results = []
-        for eq in self.equations:
-            predicted_price = sum(self.prices[prod][0] * count
-                                  for prod, count in eq["counts"].items())
-            results.append({
-                "actual_price": eq["price"],
-                "predicted_price": predicted_price,
-                "difference": abs(predicted_price - eq["price"])
-            })
-        return results
+def convert_prices(product_prices, rates, target_currency, main_currency):
+    """converts product prices to a target currency"""
+    if target_currency == main_currency:
+        return product_prices
+    if target_currency in rates:
+        rate = rates[target_currency]
+        return {product: price * rate for product, price in product_prices.items()}
+    else:
+        return {}
+
+def main(filename, main_currency, target_currency):
+    data = load_data(filename)
+    product_prices, conversion_rates = calculate_product_prices(data, main_currency)
+    qualities = calculate_set_quality(data, product_prices, main_currency)
+    converted_prices = convert_prices(product_prices, conversion_rates, target_currency, main_currency)
+
+    print(f"Approximate Product Prices in {main_currency}:")
+    for product, price in product_prices.items():
+        print(f"{product}: {price:.2f} {main_currency}")
+
+    if target_currency != main_currency:
+        print(f"\nApproximate Product Prices in {target_currency}:")
+        for product, price in converted_prices.items():
+            print(f"{product}: {price:.2f} {target_currency}")
+
+    print("\nSet Qualities:")
+    for i, item in enumerate(data["sets"]):
+        name = item["name"]
+        quality = qualities[i] if i < len(qualities) else 0.0  # ensure no out-of-range access
+        print(f"{name}: Quality: {quality:.2f}")
 
 
 if __name__ == "__main__":
-    # utwórz obiekt
-    pricing = ProductPricing()
-
-    # dodaj produkty
-    pricing.add_product("Item A")
-    pricing.add_product("Item B")
-    pricing.add_product("Item C")
-
-    # dodaj równania (zestawy)
-    pricing.add_equation({"Item A": 1, "Item B": 2}, 18, tolerance=2)
-    pricing.add_equation({"Item A": 2, "Item C": 1}, 25, tolerance=1.5)
-    pricing.add_equation({"Item B": 3, "Item C": 1}, 30, tolerance=3)
-
-    # ustaw punkty lojalnościowe
-    pricing.set_loyalty_rate("Item A", 10)
-    pricing.set_loyalty_rate("Item C", 15)
-
-    # oblicz ceny
-    pricing.solve()
-
-    # pokaż ceny produktów
-    print("Product prices with uncertainties:")
-    for product, (price, uncertainty) in pricing.get_product_prices().items():
-        print(f"{product}: {price:.2f} ± {uncertainty:.2f} zł")
-
-    # pokaż koszty zestawów
-    print("\nEquation costs:")
-    for eq_cost in pricing.get_equation_costs():
-        print(eq_cost)
+    # Example usage
+    main('mcdonalds.json', 'PKT', 'PLN')

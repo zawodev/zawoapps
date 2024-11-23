@@ -1,0 +1,59 @@
+{
+  "sets": [
+    {
+      "name": "19 zestaw",
+      "products": {"srednie frytki": 1, "maly burger": 2, "napoj": 1},
+      "price": [{"value": 19, "currency": "PLN"}]
+    },
+    {
+      "name": "OkazYEAH",
+      "products": {"srednie frytki": 1, "duzy burger": 1},
+      "price": [{"value": 17, "currency": "PLN"}]
+    },
+    {
+      "name": "2 FOR U",
+      "products": {"male frytki": 1, "maly burger": 1},
+      "price": [{"value": 9, "currency": "PLN"}]
+    },
+    {
+      "name": "2 FOR U pow",
+      "products": {"srednie frytki": 1, "maly burger": 1},
+      "price": [{"value": 11, "currency": "PLN"}]
+    },
+    {
+      "name": "MojeM 1",
+      "products": {"male frytki": 1},
+      "price": [{"value": 650, "currency": "PKT"}]
+    },
+    {
+      "name": "MojeM 2",
+      "products": {"maly burger": 1},
+      "price": [{"value": 950, "currency": "PKT"}]
+    },
+    {
+      "name": "MojeM 3",
+      "products": {"napoj": 1},
+      "price": [{"value": 1100, "currency": "PKT"}]
+    },
+    {
+      "name": "MojeM 4",
+      "products": {"srednie frytki": 1},
+      "price": [{"value": 1150, "currency": "PKT"}]
+    },
+    {
+      "name": "MojeM 5",
+      "products": {"duzy burger": 1},
+      "price": [{"value": 2450, "currency": "PKT"}]
+    },
+    {
+      "name": "MIESZANE1",
+      "products": {"duzy burger" : 1},
+      "price": [{"value": 500, "currency": "PKT"}, {"value": 10, "currency": "PLN"}]
+    },
+    {
+      "name": "MIESZANE2",
+      "products": {"maly burger" : 1},
+      "price": [{"value": 300, "currency": "PKT"}, {"value": 3, "currency": "PLN"}]
+    }
+  ]
+}
